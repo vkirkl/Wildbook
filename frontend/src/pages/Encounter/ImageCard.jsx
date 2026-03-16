@@ -46,10 +46,10 @@ const ImageCard = observer(({ store = {} }) => {
   useEffect(() => {
     if (!currentAnnotation) return;
     setEditAnnotationParams({
-      x: currentAnnotation.boundingBox[0] || 0,
-      y: currentAnnotation.boundingBox[1] || 0,
-      width: currentAnnotation.boundingBox[2] || 0,
-      height: currentAnnotation.boundingBox[3] || 0,
+      x: currentAnnotation.boundingBox?.[0] || 0,
+      y: currentAnnotation.boundingBox?.[1] || 0,
+      width: currentAnnotation.boundingBox?.[2] || 0,
+      height: currentAnnotation.boundingBox?.[3] || 0,
       theta: currentAnnotation.theta || 0,
       viewpoint: currentAnnotation.viewpoint || "",
       iaClass: currentAnnotation.iaClass || "",
