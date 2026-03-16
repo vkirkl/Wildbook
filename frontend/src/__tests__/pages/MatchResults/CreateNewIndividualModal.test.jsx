@@ -107,7 +107,7 @@ describe("CreateNewIndividualModal", () => {
     fireEvent.change(screen.getByPlaceholderText("Enter name"), {
       target: { value: "Luna" },
     });
-    expect(onNameChange).toHaveBeenCalledWith("Luna");
+    expect(onNameChange).toHaveBeenCalledWith("Luna", false);
   });
 
   test("CANCEL button calls onHide", () => {
@@ -161,6 +161,6 @@ describe("CreateNewIndividualModal", () => {
     renderModal({ locationId: "loc-3", onNameChange });
     await screen.findByText("USE_THIS");
     fireEvent.click(screen.getByText("USE_THIS"));
-    expect(onNameChange).toHaveBeenCalledWith("ID-099");
+    expect(onNameChange).toHaveBeenCalledWith("ID-099", true);
   });
 });

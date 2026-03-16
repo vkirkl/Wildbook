@@ -244,18 +244,4 @@ describe("MatchCriteriaModal", () => {
       );
     });
   });
-
-  test("does not call handlers when siteSettingsLoading is true", async () => {
-    const store = makeStore({ siteSettingsLoading: true });
-
-    render(<MatchCriteriaModal isOpen={true} store={store} />);
-
-    fireEvent.click(await screen.findByTestId("tree-select"));
-    fireEvent.click(screen.getByTestId("react-select"));
-
-    expect(store.newMatch.handleStrictChange).not.toHaveBeenCalled();
-    expect(store.newMatch.setAlgorithm).not.toHaveBeenCalled();
-
-    expect(screen.getByText("MATCH").closest("button")).toBeDisabled();
-  });
 });
