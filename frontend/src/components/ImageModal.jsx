@@ -270,13 +270,13 @@ export const ImageModal = observer(
                       marginRight: "8px",
                     }}
                     onClick={() => {
-                      const cur = assets[index];
+                      const cur = assets[safeIndex];
                       if (!cur?.url) return;
                       const a = document.createElement("a");
                       a.href = cur.url;
                       a.download =
                         cur.filename ||
-                        `encounter-image-${cur.id || index}.jpg`;
+                        `encounter-image-${cur.id || safeIndex}.jpg`;
                       a.click();
                     }}
                     aria-label="Download"
@@ -1107,7 +1107,7 @@ export const ImageModal = observer(
                         return;
                       }
                       window.open(
-                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[index]?.id}`,
+                        `/react/manual-annotation?encounterId=${imageStore.encounterData?.id}&assetId=${assets[safeIndex]?.id}`,
                         "_blank",
                       );
                     }}
