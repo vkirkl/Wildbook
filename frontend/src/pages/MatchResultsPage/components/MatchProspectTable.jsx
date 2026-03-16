@@ -568,16 +568,9 @@ const MatchProspectTable = ({
                 role="alert"
                 data-testid={`match-prospect-empty-${sectionId}`}
               >
-                {emptyStateType === "no_candidates" ? (
-                  <FormattedMessage
-                    id="NO_MATCH_CANDIDATES"
-                    defaultMessage="No candidates were available for matching."
-                  />
-                ) : emptyStateType === "no_prospects" ? (
-                  <FormattedMessage
-                    id="NO_MATCH_PROSPECTS"
-                    defaultMessage="Candidates were searched, but no match results were found."
-                  />
+                {emptyStateType === "no_candidates" ||
+                emptyStateType === "no_prospects" ? (
+                  <FormattedMessage id="NO_MATCH_PROSPECTS" />
                 ) : (
                   <FormattedMessage
                     id="NO_MATCH_RESULT"
