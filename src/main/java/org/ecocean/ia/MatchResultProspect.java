@@ -77,6 +77,12 @@ public class MatchResultProspect implements java.io.Serializable, Comparable<Mat
     // used in sorting
     @Override public int compareTo(MatchResultProspect other) {
         // we invert this so higher score is first
-        return Double.compare(other.score, this.score);
+        int comp = Double.compare(other.score, this.score);
+        // if the scores are the same (comp == 0), we want to ensure consistent/deterministic
+        // ordering (otherwise tied scores come back random order), so we use annot id
+        if ((comp == 0) && (this.annotation != null) && (this.annotation.getId() != null) && (other.annotation != null))
+            return this.annotation.getId().compareTo(other.annotation.getId());
+        // scores are *not* equal, so we just let comparison stand as-is
+        return comp;
     }
 }
