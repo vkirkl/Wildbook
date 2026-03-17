@@ -18,13 +18,15 @@ class EmbeddingTest {
     Annotation ann = new Annotation();
     JSONArray arr = new JSONArray("[1,2,3,4]");
     Embedding emb = new Embedding(ann, "test", "test", arr);
-    assertEquals("test test", emb.getMethodDescription());
+    assertEquals("test-test", emb.getMethodDescription());
     assertEquals(emb.vectorLength(), 4);
 
     assertEquals(ann.numberEmbeddings(), 1);
     assertEquals(ann.getEmbeddingByMethod("test"), emb);
     assertEquals(ann.getEmbeddingByMethod("test", "test"), emb);
     assertNull(ann.getEmbeddingByMethod("test", "fail"));
+    assertTrue(ann.getEmbeddingCounts().containsKey("test-test"));
+    assertTrue(ann.getEmbeddingCounts().get("test-test") == 1);
 
     // this should have same vector
     Embedding other = new Embedding(null, "foo", "bar", arr);

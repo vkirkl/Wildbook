@@ -4850,6 +4850,9 @@ public class Encounter extends Base implements java.io.Serializable {
                                 rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
                                     "annotations").getJSONObject(j).put("identificationStatus",
                                     ann.getIdentificationStatus());
+                                rtn.getJSONArray("mediaAssets").getJSONObject(i).getJSONArray(
+                                    "annotations").getJSONObject(j).put("embeddingCounts",
+                                    new JSONObject(ann.getEmbeddingCounts()));
                                 // annTasks are in chron order so most recent will be at end
                                 List<Task> annTasks = ann.getRootIATasks(myShepherd);
                                 int ntasks = Util.collectionSize(annTasks);

@@ -1861,6 +1861,17 @@ public class Annotation extends Base implements java.io.Serializable {
         return Util.collectionSize(embeddings);
     }
 
+    public Map<String, Integer> getEmbeddingCounts() {
+        Map<String, Integer> cts = new HashMap<String, Integer>();
+        if (Util.collectionIsEmptyOrNull(embeddings)) return cts;
+        for (Embedding emb : embeddings) {
+            String md = emb.getMethodDescription();
+            if (!cts.containsKey(md)) cts.put(md, 0);
+            cts.put(md, cts.get(md) + 1);
+        }
+        return cts;
+    }
+
     public Set<Embedding> addEmbedding(Embedding emb) {
         if (embeddings == null) embeddings = new HashSet<Embedding>();
         if (emb == null) return embeddings;

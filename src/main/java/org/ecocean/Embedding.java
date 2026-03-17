@@ -106,7 +106,7 @@ public class Embedding implements java.io.Serializable {
     }
 
     public String getMethodDescription() {
-        return ((method == null) ? "(unknown)" : method) + " " + ((methodVersion ==
+        return ((method == null) ? "(unknown)" : method) + "-" + ((methodVersion ==
                    null) ? "(unknown version)" : methodVersion);
     }
 
