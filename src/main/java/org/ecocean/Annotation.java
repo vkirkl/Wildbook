@@ -1415,6 +1415,7 @@ public class Annotation extends Base implements java.io.Serializable {
             throw new ApiException("invalid MediaAsset id=" + maId, error);
         }
         Encounter enc = null;
+        String txStr = null;
         if (encId != null) {
             enc = myShepherd.getEncounter(encId);
             if (enc == null) {
@@ -1436,6 +1437,7 @@ public class Annotation extends Base implements java.io.Serializable {
         IAJsonProperties iaConf = IAJsonProperties.iaConfig();
         if (enc != null) {
             Taxonomy tx = enc.getTaxonomy(myShepherd);
+            txStr = enc.getTaxonomyString(); // used for embedding MLService call later
             if (!iaConf.isValidIAClass(tx, iaClass)) {
                 error.put("code", ApiException.ERROR_RETURN_CODE_INVALID);
                 error.put("fieldName", "iaClass");
@@ -1594,6 +1596,14 @@ public class Annotation extends Base implements java.io.Serializable {
                 System.out.println("Annotation.createFromApi(): removeTrivial detached " +
                     foundTrivial + " (and Feature) from " + ma + " and " + enc);
             }
+        }
+        // try to get embedding
+        try {
+            MLService mls = new MLService();
+            mls.send(ann, txStr, myShepherd);
+            System.out.println("Annotation.createFromApi(): embedding processed for " + ann);
+        } catch (Exception ex) {
+            System.out.println("Annotation.createFromApi(): embedding failed for " + ann + ": " + ex);
         }
         // send to IA as needed
         try {
