@@ -218,16 +218,30 @@ const MatchProspectTable = ({
   const inspectorOrigH = previewedRow?.asset?.height;
 
   React.useEffect(() => {
-    const first =
-      columns
-        .flatMap((columnData) => columnData)
-        .find((candidate) => candidate?.annotation) ?? null;
-    if (!first) {
+    const flat = columns.flatMap((columnData) => columnData);
+    const candidates = flat.filter((candidate) => candidate?.annotation);
+
+    if (candidates.length === 0) {
       setPreviewedRow(null);
       return;
     }
-    const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
-    setPreviewedRow({ ...first, _rowKey: firstKey });
+
+    setPreviewedRow((prev) => {
+      if (prev?.annotation?.id) {
+        const matched = candidates.find(
+          (candidate) => candidate?.annotation?.id === prev.annotation.id,
+        );
+
+        if (matched) {
+          const matchedKey = `${matched.annotation?.id}-${matched.displayIndex}`;
+          return { ...matched, _rowKey: matchedKey };
+        }
+      }
+
+      const first = candidates[0];
+      const firstKey = `${first.annotation?.id}-${first.displayIndex}`;
+      return { ...first, _rowKey: firstKey };
+    });
   }, [columns]);
 
   const [hoveredRow, setHoveredRow] = React.useState(null);
@@ -344,7 +358,7 @@ const MatchProspectTable = ({
               }}
               data-testid={`match-prospect-date-${sectionId}`}
             >
-              <span>{date?.slice(0, 16).replace("T", " ")}</span>
+              <span>{date?.slice(0, 16)?.replace("T", " ")}</span>
             </div>
           </div>
         </div>
@@ -757,7 +771,7 @@ const MatchProspectTable = ({
               style={
                 inspectorUrl &&
                 hasRightImage &&
-                algorithm.toLowerCase().includes("hotspotter")
+                (algorithm || "").toLowerCase().includes("hotspotter")
                   ? styles.iconButton
                   : styles.iconButtonDisabled
               }

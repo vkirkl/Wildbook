@@ -37,6 +37,7 @@ const MatchResults = observer(() => {
 
   useEffect(() => {
     if (!projectIdPrefix) return;
+    if (!taskId) return;
 
     const match = Object.entries(projectsForUser).find(
       ([, p]) => p?.prefix === projectIdPrefix,
@@ -46,7 +47,8 @@ const MatchResults = observer(() => {
     const [projectId] = match;
 
     store.setProjectNames([projectId], { fetch: false });
-  }, [projectIdPrefix, projectsForUser, store]);
+    store.fetchMatchResults();
+  }, [projectIdPrefix, projectsForUser, taskId, store]);
 
   useEffect(() => {
     if (taskId) {
