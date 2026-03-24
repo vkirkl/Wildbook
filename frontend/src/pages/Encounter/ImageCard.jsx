@@ -29,6 +29,10 @@ const ImageCard = observer(({ store = {} }) => {
   const [editAnnotationParams, setEditAnnotationParams] = useState({});
   const [imageReady, setImageReady] = useState(false);
   const intl = useIntl();
+  const mediaAssets = store.encounterData?.mediaAssets;
+  const hasMediaAssets = Array.isArray(mediaAssets) && mediaAssets.length > 0;
+  const encounterDataLoaded =
+    !!store.encounterData && Array.isArray(mediaAssets);
 
   useEffect(() => {
     store.setIntl(intl);
@@ -247,6 +251,7 @@ const ImageCard = observer(({ store = {} }) => {
           <FormattedMessage id="IMAGES" />
         </span>
       </div>
+
       <div className="mb-2 d-flex flex-row align-items-center justify-content-between">
         <p>
           {store.encounterData?.mediaAssets?.[store.selectedImageIndex]
@@ -259,15 +264,20 @@ const ImageCard = observer(({ store = {} }) => {
             : ""}
         </p>
       </div>
+
       <div
         ref={boxRef}
         style={{
           width: "100%",
           position: "relative",
-          cursor: "pointer",
+          cursor: imageReady ? "pointer" : "default",
           overflow: "hidden",
+          minHeight: 200,
         }}
-        onClick={() => setOpenImageModal(true)}
+        onClick={() => {
+          if (!imageReady) return;
+          setOpenImageModal(true);
+        }}
       >
         {imageReady &&
           rects.length > 0 &&
@@ -530,32 +540,82 @@ const ImageCard = observer(({ store = {} }) => {
             );
           })}
 
-        {store.encounterData?.mediaAssets.length > 0 ? (
-          <img
-            ref={imgRef}
-            src={
-              store.encounterData?.mediaAssets?.[store.selectedImageIndex]
-                ?.url || ""
-            }
-            alt="encounter image"
-            style={{ width: "100%", height: "auto" }}
-          />
+        {!encounterDataLoaded ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "rgba(255, 255, 255, 0.45)",
+              zIndex: 30,
+            }}
+          >
+            <div className="d-flex flex-column align-items-center">
+              <div className="spinner-border spinner-border-sm" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <small style={{ marginTop: 8 }}>Loading image...</small>
+            </div>
+          </div>
+        ) : hasMediaAssets ? (
+          <>
+            <img
+              ref={imgRef}
+              src={mediaAssets?.[store.selectedImageIndex]?.url || ""}
+              alt="encounter image"
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+                opacity: imageReady ? 1 : 0.35,
+              }}
+            />
+
+            {!imageReady && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "rgba(255, 255, 255, 0.45)",
+                  zIndex: 30,
+                }}
+              >
+                <div className="d-flex flex-column align-items-center">
+                  <div
+                    className="spinner-border spinner-border-sm"
+                    role="status"
+                  >
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <small style={{ marginTop: 8 }}>Loading image...</small>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <p>
             <FormattedMessage id="NO_IMAGE_AVAILABLE" />
           </p>
         )}
+
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
-        {store.encounterData?.mediaAssets.length > 0 && (
+
+        {store.encounterData?.mediaAssets?.length > 0 && (
           <div style={{ position: "absolute", top: 5, right: 5 }}>
             <FullscreenIcon />
           </div>
         )}
       </div>
+
       {store.access === "write" &&
-        store.encounterData?.mediaAssets.length > 0 && (
+        store.encounterData?.mediaAssets?.length > 0 && (
           <div
             className="d-flex flex-row justify-content-between align-items-center w-100 align-items-center"
             style={{
@@ -626,6 +686,7 @@ const ImageCard = observer(({ store = {} }) => {
                 <FormattedMessage id="MATCH_RESULTS" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               style={{ cursor: "pointer", paddingTop: "20px" }}
@@ -649,6 +710,7 @@ const ImageCard = observer(({ store = {} }) => {
                 <FormattedMessage id="VISUAL_MATCHER" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               onClick={() => {
@@ -673,6 +735,7 @@ const ImageCard = observer(({ store = {} }) => {
                 <FormattedMessage id="NEW_MATCH" />
               </p>
             </div>
+
             <div
               className="d-flex align-items-center justify-content-center flex-column"
               style={{ cursor: "pointer", paddingTop: "20px" }}
@@ -696,11 +759,12 @@ const ImageCard = observer(({ store = {} }) => {
             </div>
           </div>
         )}
+
       <div
         className="d-flex flex-wrap align-items-center mt-2"
         style={{ gap: 8, overflowY: "auto", maxHeight: 200 }}
       >
-        {store.encounterData?.mediaAssets.map((asset, index) => (
+        {store.encounterData?.mediaAssets?.map((asset, index) => (
           <img
             key={index}
             src={asset.url}
@@ -718,6 +782,7 @@ const ImageCard = observer(({ store = {} }) => {
             onClick={() => store.setSelectedImageIndex(index)}
           />
         ))}
+
         {store.access === "write" && (
           <div id="add-more-files">
             <label
@@ -776,6 +841,7 @@ const ImageCard = observer(({ store = {} }) => {
           </div>
         )}
       </div>
+
       {openImageModal && (
         <ImageModal
           open={openImageModal}
