@@ -27,7 +27,7 @@ const SECTIONS = [
   },
 ];
 
-const DEFAULT_KEY = "CITING_WILDBOOK";
+const DEFAULT_KEY = "PRIVACY_POLICY";
 
 const SECTION_PARAM_TO_KEY = {
   privacy_policy: "PRIVACY_POLICY",

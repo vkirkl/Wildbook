@@ -68,7 +68,7 @@ const authenticatedMenu = (
             defaultMessage="Policies and Data"
           />
         ),
-        href: `${process.env.PUBLIC_URL}/policies-and-data?section=citing_wildbook`,
+        href: `${process.env.PUBLIC_URL}/policies-and-data?section=privacy_policy`,
         sub: [
           {
             name: <FormattedMessage id="MENU_LEARN_PRIVACYPOLICY" />,
