@@ -51,6 +51,23 @@ export default function MultiSelectWithCheckbox({
       onChange={(next) => setDraft(next)}
       maxTagCount={2}
       options={options}
+      menuItemSelectedIcon={null}
+      tagRender={({ label }) => (
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            padding: "0 7px",
+            marginInlineEnd: 4,
+            background: "#f0f0f0",
+            border: "1px solid #d9d9d9",
+            borderRadius: 4,
+            height: 24,
+          }}
+        >
+          {label}
+        </span>
+      )}
       filterOption={(input, option) =>
         (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
       }

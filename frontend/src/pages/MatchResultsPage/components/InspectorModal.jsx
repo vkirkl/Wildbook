@@ -53,6 +53,10 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 10px rgba(0,0,0,0.25)",
   },
+  overlayHost: {
+    width: "100%",
+    height: "100%",
+  },
 };
 
 const CloseIcon = () => (
@@ -155,7 +159,7 @@ export default function InspectorModal({
               </div>
 
               <div
-                style={{ overflow: "auto", width: "100%", height: "100%" }}
+                style={styles.overlayHost}
                 id="inspector-modal-overlay-scroll"
                 data-testid="inspector-modal-overlay-scroll"
               >
@@ -166,6 +170,12 @@ export default function InspectorModal({
                   originalHeight={originalHeight}
                   annotations={[]}
                   showAnnotations={false}
+                  containerStyle={{ width: "100%", height: "100%" }}
+                  imageStyle={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                  }}
                 />
               </div>
             </div>

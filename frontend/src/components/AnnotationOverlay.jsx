@@ -7,6 +7,8 @@ import React, {
   useState,
 } from "react";
 
+const VISIBLE_MARGIN_PX = 40;
+
 const InteractiveAnnotationOverlay = forwardRef(
   (
     {
@@ -25,12 +27,15 @@ const InteractiveAnnotationOverlay = forwardRef(
       containerStyle = {},
       imageStyle = {},
       overlayStyle = {},
+      loadingText = "Loading image...",
+      loadingOverlayStyle = {},
       alt = "Image with annotations",
     },
     ref,
   ) => {
     const outerContainerRef = useRef(null);
     const imgRef = useRef(null);
+
     const [zoom, setZoom] = useState(
       Number.isFinite(initialZoom) ? initialZoom : 1,
     );
@@ -40,6 +45,7 @@ const InteractiveAnnotationOverlay = forwardRef(
     const panStartRef = useRef({ x: 0, y: 0 });
     const [scaleX, setScaleX] = useState(1);
     const [scaleY, setScaleY] = useState(1);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     const [internalShowAnn, setInternalShowAnn] = useState(true);
     const showAnn =
@@ -52,6 +58,8 @@ const InteractiveAnnotationOverlay = forwardRef(
     useEffect(() => {
       if (!imgRef.current) return;
 
+      setImageLoaded(false);
+
       const handleImageLoad = () => {
         if (imgRef.current) {
           const naturalWidth = Number(originalWidth);
@@ -62,12 +70,18 @@ const InteractiveAnnotationOverlay = forwardRef(
           if (naturalWidth && naturalHeight && displayWidth && displayHeight) {
             setScaleX(naturalWidth / displayWidth);
             setScaleY(naturalHeight / displayHeight);
+          } else {
+            setScaleX(1);
+            setScaleY(1);
           }
+
+          setImageLoaded(true);
         }
       };
 
       const imgElement = imgRef.current;
-      if (imgElement && imgElement.complete) {
+
+      if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
         handleImageLoad();
       } else if (imgElement) {
         imgElement.addEventListener("load", handleImageLoad);
@@ -82,13 +96,14 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     const canRenderAnnotations = useMemo(() => {
       return (
+        imageLoaded &&
         showAnn &&
         Number.isFinite(scaleX) &&
         Number.isFinite(scaleY) &&
         scaleX > 0 &&
         scaleY > 0
       );
-    }, [showAnn, scaleX, scaleY]);
+    }, [imageLoaded, showAnn, scaleX, scaleY]);
 
     const visibleAnnotations = useMemo(() => {
       if (!Array.isArray(annotations)) return [];
@@ -112,16 +127,58 @@ const InteractiveAnnotationOverlay = forwardRef(
 
     const clampZoom = (z) => Math.max(minZoom, Math.min(maxZoom, z));
 
-    const zoomIn = () => setZoom((z) => clampZoom(z + zoomStep));
-    const zoomOut = () => setZoom((z) => clampZoom(z - zoomStep));
-    const reset = () => {
-      setZoom(clampZoom(initialZoom || 1));
-      setPan({ x: 0, y: 0 });
+    const clampPan = (nextPan, nextZoom = zoom) => {
+      const container = outerContainerRef.current;
+      const img = imgRef.current;
+
+      if (!container || !img) return nextPan;
+
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      const imageWidth = img.clientWidth * nextZoom;
+      const imageHeight = img.clientHeight * nextZoom;
+
+      const visibleMarginX = Math.min(VISIBLE_MARGIN_PX, containerWidth);
+      const visibleMarginY = Math.min(VISIBLE_MARGIN_PX, containerHeight);
+
+      const minX = visibleMarginX - imageWidth;
+      const maxX = containerWidth - visibleMarginX;
+      const minY = visibleMarginY - imageHeight;
+      const maxY = containerHeight - visibleMarginY;
+
+      return {
+        x: Math.max(minX, Math.min(maxX, nextPan.x)),
+        y: Math.max(minY, Math.min(maxY, nextPan.y)),
+      };
     };
+
+    const zoomIn = () => {
+      setZoom((z) => {
+        const nextZoom = clampZoom(z + zoomStep);
+        setPan((prev) => clampPan(prev, nextZoom));
+        return nextZoom;
+      });
+    };
+
+    const zoomOut = () => {
+      setZoom((z) => {
+        const nextZoom = clampZoom(z - zoomStep);
+        setPan((prev) => clampPan(prev, nextZoom));
+        return nextZoom;
+      });
+    };
+
+    const reset = () => {
+      const nextZoom = clampZoom(initialZoom || 1);
+      setZoom(nextZoom);
+      setPan(clampPan({ x: 0, y: 0 }, nextZoom));
+    };
+
     const toggleAnnotations = () => {
       if (typeof showAnnotationsProp === "boolean") return;
       setInternalShowAnn((v) => !v);
     };
+
     const setAnnotationsVisible = (v) => {
       if (typeof showAnnotationsProp === "boolean") return;
       setInternalShowAnn(!!v);
@@ -133,10 +190,12 @@ const InteractiveAnnotationOverlay = forwardRef(
       reset,
       toggleAnnotations,
       setAnnotationsVisible,
-      getState: () => ({ zoom, pan, showAnn }),
+      getState: () => ({ zoom, pan, showAnn, imageLoaded }),
     }));
 
     const onMouseDown = (e) => {
+      if (!imageLoaded) return;
+
       setDragging(true);
       dragStartRef.current = { x: e.clientX, y: e.clientY };
       panStartRef.current = { ...pan };
@@ -148,21 +207,52 @@ const InteractiveAnnotationOverlay = forwardRef(
       const onMove = (e) => {
         const dx = e.clientX - dragStartRef.current.x;
         const dy = e.clientY - dragStartRef.current.y;
-        setPan({
+
+        const nextPan = {
           x: panStartRef.current.x + dx,
           y: panStartRef.current.y + dy,
-        });
+        };
+
+        setPan(clampPan(nextPan));
       };
 
       const onUp = () => setDragging(false);
 
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
+
       return () => {
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
       };
-    }, [dragging, pan]);
+    }, [dragging, zoom]);
+
+    useEffect(() => {
+      const img = imgRef.current;
+      if (!img) return;
+
+      const handleLoad = () => {
+        setPan((prev) => clampPan(prev, zoom));
+      };
+
+      if (img.complete && img.naturalWidth > 0) {
+        handleLoad();
+      } else {
+        img.addEventListener("load", handleLoad);
+        return () => img.removeEventListener("load", handleLoad);
+      }
+    }, [imageUrl, zoom]);
+
+    useEffect(() => {
+      const handleResize = () => {
+        setPan((prev) => clampPan(prev, zoom));
+      };
+
+      window.addEventListener("resize", handleResize);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }, [zoom]);
 
     const panZoomTransform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
 
@@ -173,7 +263,7 @@ const InteractiveAnnotationOverlay = forwardRef(
           position: "relative",
           width: "100%",
           overflow: "hidden",
-          cursor: dragging ? "grabbing" : "grab",
+          cursor: !imageLoaded ? "default" : dragging ? "grabbing" : "grab",
           ...containerStyle,
         }}
         onMouseDown={onMouseDown}
@@ -200,6 +290,25 @@ const InteractiveAnnotationOverlay = forwardRef(
               ...imageStyle,
             }}
           />
+
+          {!imageLoaded && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "rgba(255, 255, 255, 0.6)",
+                zIndex: 1,
+                pointerEvents: "none",
+                fontSize: 14,
+                ...loadingOverlayStyle,
+              }}
+            >
+              {loadingText}
+            </div>
+          )}
 
           {canRenderAnnotations && (
             <div
