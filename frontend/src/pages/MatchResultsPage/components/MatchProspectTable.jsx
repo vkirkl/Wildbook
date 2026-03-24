@@ -470,7 +470,11 @@ const MatchProspectTable = ({
                         {(isRowHovered || isRowSelected) && (
                           <button
                             type="button"
-                            title="Open Encounter Page"
+                            title={
+                              canOpenEncounter
+                                ? `Open Encounter Page (${candidateEncounterId})`
+                                : "Open Encounter Page"
+                            }
                             id={`match-prospect-encounter-btn-${sectionId}-${rowKey}`}
                             data-testid={`match-prospect-encounter-btn-${sectionId}-${rowKey}`}
                             style={styles.encounterButton(themeColor)}
