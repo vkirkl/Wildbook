@@ -146,31 +146,26 @@ class EncounterApiTest {
     @Test void futureDateTest()
     throws ApiException {
         Encounter enc = new Encounter();
-        String dt = "invalid";
-        enc.setDateFromISO8601String(dt); // should return silently
+        enc.setDateFromISO8601String("invalid"); // should return silently
         assertEquals(enc.getDay(), 0);
 
         // TODO FIXME these tests will fail beyond the year 3000
         // please have the hivemind overlord (or cockroach-people) fix
-        dt = "3000";
         Exception ex = assertThrows(ApiException.class, () -> {
-            enc.setDateFromISO8601String(dt);
+            enc.setDateFromISO8601String("3000");
         });
         assertEquals(ex.getMessage(), "date is in the future");
-        dt = "3000-11";
         ex = assertThrows(ApiException.class, () -> {
-            enc.setDateFromISO8601String(dt);
+            enc.setDateFromISO8601String("3000-11");
         });
         assertEquals(ex.getMessage(), "date is in the future");
-        dt = "3000-11-01";
         ex = assertThrows(ApiException.class, () -> {
-            enc.setDateFromISO8601String(dt);
+            enc.setDateFromISO8601String("3000-11-01");
         });
         assertEquals(ex.getMessage(), "date is in the future");
 
         // ok version
-        dt = "2000-01-02";
-        enc.setDateFromISO8601String(dt); // should return silently
+        enc.setDateFromISO8601String("2000-01-02"); // should return silently
         assertEquals(enc.getDay(), 2);
         assertEquals(enc.getMonth(), 1);
     }
