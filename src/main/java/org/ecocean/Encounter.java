@@ -2355,7 +2355,7 @@ public class Encounter extends Base implements java.io.Serializable {
             if (Util.dateIsInFuture(this.year, null, null)) {
                 error.put("fieldName", "year");
                 error.put("value", this.year);
-                throw new ApiException("date is in future", error);
+                throw new ApiException("date is in the future", error);
             }
             resetDateInMilliseconds();
             return;
@@ -2370,7 +2370,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 // if we wanted to be super thorough we could do errors array of year & month
                 error.put("fieldName", "month");
                 error.put("value", this.month);
-                throw new ApiException("date is in future", error);
+                throw new ApiException("date is in the future", error);
             }
             resetDateInMilliseconds();
             return;
@@ -2381,7 +2381,7 @@ public class Encounter extends Base implements java.io.Serializable {
             if (Util.dateIsInFuture(dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth())) {
                 error.put("fieldName", "day");
                 error.put("value", dt.getDayOfMonth());
-                throw new ApiException("date is in future", error);
+                throw new ApiException("date is in the future", error);
             }
             this.setDateInMilliseconds(dt.getMillis());
         // pass this flavor out...
