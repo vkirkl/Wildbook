@@ -277,6 +277,28 @@ public class Embedding implements java.io.Serializable {
             // every ann gets a subTask
             Task subTask = new Task(task);
             subTask.addObject(ann);
+
+            // we need embedding(s) on this annot to find prospects, so lets try to make some on the fly if we dont have one
+            // TODO not sure if this is wise, or it would be better to just fail outright and let some background process do this
+            if (ann.numberEmbeddings() < 1) {
+                System.out.println("[DEBUG] findMatchProspects() creating embeddings on the fly; found none on " + ann);
+                try {
+                    ann.extractEmbeddings(myShepherd);
+                } catch (IAException ex) {
+                    System.out.println("[WARNING] findMatchProspects() unable to extractEmbeddings on " + ann + " due to: " + ex);
+                }
+                // if none now, we just fail and continue onto next annot
+                if (ann.numberEmbeddings() < 1) {
+                    System.out.println("findMatchProspects() cannot getMatches() on " + ann +
+                        " due to no suitable embeddings for " + iaConfig);
+                    subTask.setStatus("error");
+                    // FIXME subTask.setStatusDetailsAddError("REQUIRED", "no suitable embeddings for getMatches()");
+                    subTask.setCompletionDateInMilliseconds();
+                    myShepherd.getPM().makePersistent(subTask);
+                    continue;
+                }
+            }
+
             // first we get matchingSetQuery to find number of candidates
             boolean useClauses = false; // TODO how??
             JSONObject matchingSetQuery = ann.getMatchingSetQuery(myShepherd, task.getParameters(),
@@ -285,6 +307,8 @@ public class Embedding implements java.io.Serializable {
             String[] methodValues = MLService.getMethodValues(iaConfig);
             JSONObject matchQuery = ann.getMatchQuery(methodValues[0], methodValues[1],
                 matchingSetQuery);
+
+            // i think this will never happen now, due to on-the-fly fix above; but leaving to be safe
             if (matchQuery == null) {
                 System.out.println("findMatchProspects() cannot getMatches() on " + ann +
                     " due to no suitable embeddings for " + iaConfig);
@@ -294,6 +318,7 @@ public class Embedding implements java.io.Serializable {
                 myShepherd.getPM().makePersistent(subTask);
                 continue; // on to next ann
             }
+
             OpenSearch os = new OpenSearch();
             int numberCandidates = -2;
             try {
