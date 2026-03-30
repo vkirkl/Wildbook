@@ -12,6 +12,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.api.ApiException;
 import org.ecocean.ia.IA;
+import org.ecocean.ia.IAException;
 import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
@@ -1599,9 +1600,7 @@ public class Annotation extends Base implements java.io.Serializable {
         }
         // try to get embedding
         try {
-            MLService mls = new MLService();
-            mls.send(ann, txStr, myShepherd);
-            System.out.println("Annotation.createFromApi(): embedding processed for " + ann);
+            ann.extractEmbeddings(txStr, myShepherd);
         } catch (Exception ex) {
             System.out.println("Annotation.createFromApi(): embedding failed for " + ann + ": " + ex);
         }
@@ -1617,6 +1616,23 @@ public class Annotation extends Base implements java.io.Serializable {
             IBEISIA.sendAnnotationsNew(anns, context, myShepherd);
         } catch (Exception ex) {} // silently fail; they will be synced up later
         return ann;
+    }
+
+    // note: this will throw an IAException if the txStr does not support embeddings
+    // in IA.json, which can be construed as more informational than error
+    public void extractEmbeddings(String txStr, Shepherd myShepherd)
+    throws IAException {
+        MLService mls = new MLService();
+        mls.send(this, txStr, myShepherd);
+        System.out.println("[INFO] extractEmbeddings(): embedding processed for " + this);
+    }
+
+    // this is more expensive when we dont have txStr; so use above if txStr is already known
+    public void extractEmbeddings(Shepherd myShepherd)
+    throws IAException {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc == null) throw new IAException("cannot determine Encounter for " + this);
+        extractEmbeddings(enc.getTaxonomyString(), myShepherd);
     }
 
     public void queueForEmbeddingExtraction(Task task, Shepherd myShepherd) {
