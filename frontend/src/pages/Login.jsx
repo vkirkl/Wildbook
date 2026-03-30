@@ -172,12 +172,19 @@ function LoginPage() {
               </Form.Group>
 
               <Form.Group controlId="formBasicCheckbox" className="mb-3 mt-3">
-                <Form.Check
-                  type="checkbox"
-                  id="agree-terms"
-                  checked={agree}
-                  onChange={(e) => setAgree(e.target.checked)}
-                  label={
+                <div className="form-check">
+                  <Form.Check.Input
+                    type="checkbox"
+                    id="agree-terms"
+                    checked={agree}
+                    onChange={(e) => setAgree(e.target.checked)}
+                    style={{
+                      border: `2px solid ${theme.primaryColors.primary500}`,
+                      width: "18px",
+                      height: "18px",
+                    }}
+                  />
+                  <Form.Check.Label htmlFor="agree-terms">
                     <span
                       style={{
                         display: "inline-flex",
@@ -216,8 +223,8 @@ function LoginPage() {
                         />
                       </a>
                     </span>
-                  }
-                />
+                  </Form.Check.Label>
+                </div>
               </Form.Group>
 
               <BrutalismButton
