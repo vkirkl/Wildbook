@@ -1,30 +1,21 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
-org.joda.time.DateTime,
 org.ecocean.servlet.importer.ImportTask,
-org.ecocean.media.MediaAsset,
 javax.jdo.Query,
 org.json.JSONArray,
 org.json.JSONObject,
-java.util.Set,
-java.util.HashSet,
-java.util.List,
-java.util.Collection,
 java.util.ArrayList,
-java.util.Iterator,
-org.ecocean.security.Collaboration,
-java.util.HashMap,
-org.ecocean.ia.Task,
-java.util.HashMap,
-java.util.LinkedHashSet,
 java.util.Collection,
-java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+java.util.HashMap,
+java.util.List,
+java.util.Map,
+org.slf4j.Logger,org.slf4j.LoggerFactory" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
 <%!
 // Batch-load all counts in 3 queries instead of 3*N per-task queries.
-private HashMap<String,Integer> getAllEncounterCounts(Shepherd myShepherd) {
-	HashMap<String,Integer> map = new HashMap<>();
+private Map<String,Integer> getAllEncounterCounts(Shepherd myShepherd) {
+	Map<String,Integer> map = new HashMap<>();
 	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
 		"SELECT \"ID_OID\", count(*) FROM \"IMPORTTASK_ENCOUNTERS\" GROUP BY \"ID_OID\"");
 	try {
@@ -41,8 +32,8 @@ private HashMap<String,Integer> getAllEncounterCounts(Shepherd myShepherd) {
 	return map;
 }
 
-private HashMap<String,Integer> getAllIndividualCounts(Shepherd myShepherd) {
-	HashMap<String,Integer> map = new HashMap<>();
+private Map<String,Integer> getAllIndividualCounts(Shepherd myShepherd) {
+	Map<String,Integer> map = new HashMap<>();
 	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
 		"SELECT ie.\"ID_OID\", count(distinct me.\"INDIVIDUALID_OID\") " +
 		"FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
@@ -64,8 +55,8 @@ private HashMap<String,Integer> getAllIndividualCounts(Shepherd myShepherd) {
 
 // Counts distinct MediaAssets via: Encounter → Annotation → Feature → MediaAsset
 // Feature.asset is mapped-by from MediaAsset side, so we join through MEDIAASSET_FEATURES.
-private HashMap<String,Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
-	HashMap<String,Integer> map = new HashMap<>();
+private Map<String,Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
+	Map<String,Integer> map = new HashMap<>();
 	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
 		"SELECT ie.\"ID_OID\", count(distinct mf.\"ID_OID\") " +
 		"FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
@@ -166,9 +157,9 @@ a.button:hover {
 
 try{
     // Batch-load all counts in 3 queries (instead of 3 per task)
-    HashMap<String,Integer> encCounts = getAllEncounterCounts(myShepherd);
-    HashMap<String,Integer> indivCounts = getAllIndividualCounts(myShepherd);
-    HashMap<String,Integer> mediaCounts = getAllMediaAssetCounts(myShepherd);
+    Map<String,Integer> encCounts = getAllEncounterCounts(myShepherd);
+    Map<String,Integer> indivCounts = getAllIndividualCounts(myShepherd);
+    Map<String,Integer> mediaCounts = getAllMediaAssetCounts(myShepherd);
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null";
     Query query = myShepherd.getPM().newQuery(jdoql);
