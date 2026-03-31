@@ -6,78 +6,11 @@ org.json.JSONArray,
 org.json.JSONObject,
 java.util.ArrayList,
 java.util.Collection,
-java.util.HashMap,
 java.util.List,
-java.util.Map,
-org.slf4j.Logger,org.slf4j.LoggerFactory" %>
+java.util.Map" %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 
-<%!
-// Batch-load all counts in 3 queries instead of 3*N per-task queries.
-private Map<String,Integer> getAllEncounterCounts(Shepherd myShepherd) {
-	Map<String,Integer> map = new HashMap<>();
-	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
-		"SELECT \"ID_OID\", count(*) FROM \"IMPORTTASK_ENCOUNTERS\" GROUP BY \"ID_OID\"");
-	try {
-		List results = query.executeList();
-		for (Object row : results) {
-			Object[] cols = (Object[]) row;
-			map.put((String) cols[0], ((Number) cols[1]).intValue());
-		}
-	} catch (Exception e) {
-		e.printStackTrace();
-	} finally {
-		if (query != null) query.closeAll();
-	}
-	return map;
-}
-
-private Map<String,Integer> getAllIndividualCounts(Shepherd myShepherd) {
-	Map<String,Integer> map = new HashMap<>();
-	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
-		"SELECT ie.\"ID_OID\", count(distinct me.\"INDIVIDUALID_OID\") " +
-		"FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
-		"JOIN \"MARKEDINDIVIDUAL_ENCOUNTERS\" me ON ie.\"CATALOGNUMBER_EID\" = me.\"CATALOGNUMBER_EID\" " +
-		"GROUP BY ie.\"ID_OID\"");
-	try {
-		List results = query.executeList();
-		for (Object row : results) {
-			Object[] cols = (Object[]) row;
-			map.put((String) cols[0], ((Number) cols[1]).intValue());
-		}
-	} catch (Exception e) {
-		e.printStackTrace();
-	} finally {
-		if (query != null) query.closeAll();
-	}
-	return map;
-}
-
-// Counts distinct MediaAssets via: Encounter → Annotation → Feature → MediaAsset
-// Feature.asset is mapped-by from MediaAsset side, so we join through MEDIAASSET_FEATURES.
-private Map<String,Integer> getAllMediaAssetCounts(Shepherd myShepherd) {
-	Map<String,Integer> map = new HashMap<>();
-	Query query = myShepherd.getPM().newQuery("javax.jdo.query.SQL",
-		"SELECT ie.\"ID_OID\", count(distinct mf.\"ID_OID\") " +
-		"FROM \"IMPORTTASK_ENCOUNTERS\" ie " +
-		"JOIN \"ENCOUNTER_ANNOTATIONS\" ea ON ie.\"CATALOGNUMBER_EID\" = ea.\"CATALOGNUMBER_OID\" " +
-		"JOIN \"ANNOTATION_FEATURES\" af ON ea.\"ID_EID\" = af.\"ID_OID\" " +
-		"JOIN \"MEDIAASSET_FEATURES\" mf ON af.\"ID_EID\" = mf.\"ID_EID\" " +
-		"GROUP BY ie.\"ID_OID\"");
-	try {
-		List results = query.executeList();
-		for (Object row : results) {
-			Object[] cols = (Object[]) row;
-			map.put((String) cols[0], ((Number) cols[1]).intValue());
-		}
-	} catch (Exception e) {
-		e.printStackTrace();
-	} finally {
-		if (query != null) query.closeAll();
-	}
-	return map;
-}
-%>
+<%-- Batch count methods are in ImportTask.java --%>
 
 <%
 
@@ -157,9 +90,9 @@ a.button:hover {
 
 try{
     // Batch-load all counts in 3 queries (instead of 3 per task)
-    Map<String,Integer> encCounts = getAllEncounterCounts(myShepherd);
-    Map<String,Integer> indivCounts = getAllIndividualCounts(myShepherd);
-    Map<String,Integer> mediaCounts = getAllMediaAssetCounts(myShepherd);
+    Map<String,Integer> encCounts = ImportTask.getAllEncounterCounts(myShepherd);
+    Map<String,Integer> indivCounts = ImportTask.getAllIndividualCounts(myShepherd);
+    Map<String,Integer> mediaCounts = ImportTask.getAllMediaAssetCounts(myShepherd);
 
     String jdoql = "SELECT FROM org.ecocean.servlet.importer.ImportTask WHERE id != null";
     Query query = myShepherd.getPM().newQuery(jdoql);
