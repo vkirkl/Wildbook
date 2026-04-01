@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+// import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.identity.IdentityServiceLog;
@@ -300,6 +301,9 @@ public class MatchResult implements java.io.Serializable {
         MediaAsset ma1 = ann1.getMediaAsset();
         MediaAsset ma2 = ann2.getMediaAsset();
         if ((ma1 == null) || (ma2 == null)) return null;
+        // we need this to find MLService endpoint
+        Encounter enc = ann1.findEncounter(myShepherd);
+        if (enc == null) return null;
         JSONObject payload = new JSONObject();
         payload.put("algorithm", "pairx");
         payload.put("visualization_type", "only_colors");
@@ -319,7 +323,7 @@ public class MatchResult implements java.io.Serializable {
         JSONObject res = null;
         URL pairxUrl = null;
         try {
-            pairxUrl = _getPairxUrl();
+            pairxUrl = _getPairxUrl(enc.getTaxonomyString());
             if (pairxUrl == null) return null;
             res = RestClient.post(pairxUrl, payload);
         } catch (Exception ex) {
@@ -353,9 +357,22 @@ public class MatchResult implements java.io.Serializable {
         return null;
     }
 
-    public static URL _getPairxUrl()
-    throws java.net.MalformedURLException {
-        return new URL("not-yet-implemented");
+    public static URL _getPairxUrl(String txStr)
+    throws IOException {
+        if (txStr == null) throw new IOException("passed null taxonomy");
+        String urlStr = null;
+/*  FIXME make live when merged with vectors branch
+        try {
+            MLService mls = new MLService();
+            List<JSONObject> confs = mls.getConfigs(txStr);
+            if (confs.size() < 1) throw new IOException("empty MLService configs for tx=" + txStr);
+            urlStr = confs.get(0).optString("api_endpoint", null);
+        } catch (IAException ex) {
+            throw new IOException(ex);
+        }
+ */
+        if (urlStr == null) return null;
+        return new URL(urlStr);
     }
 
     public JSONObject getTaskParameters() {
