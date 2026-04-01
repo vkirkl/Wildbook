@@ -372,7 +372,7 @@ public class MatchResult implements java.io.Serializable {
         }
  */
         if (urlStr == null) return null;
-        return new URL(urlStr);
+        return new URL(urlStr + "/explain/");
     }
 
     public JSONObject getTaskParameters() {
