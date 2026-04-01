@@ -312,10 +312,10 @@ public class MatchResult implements java.io.Serializable {
         payload.put("model_id", "miewid-msv4.1");
         payload.put("crop_bbox", false);
         payload.put("layer_key", "backbone.blocks.3");
-        payload.put("image1_uris", new JSONArray(ma1.webURL()));
-        payload.put("image2_uris", new JSONArray(ma2.webURL()));
-        payload.put("theta1", new JSONArray(ann1.getTheta()));
-        payload.put("theta2", new JSONArray(ann2.getTheta()));
+        payload.put("image1_uris", new JSONArray(new String[] { ma1.webURL().toString() }));
+        payload.put("image2_uris", new JSONArray(new String[] { ma2.webURL().toString() }));
+        payload.put("theta1", new JSONArray(new Double[] { ann1.getTheta() }));
+        payload.put("theta2", new JSONArray(new Double[] { ann2.getTheta() }));
         payload.put("bb1", new JSONArray(ann1.getBbox()));
         payload.put("bb2", new JSONArray(ann2.getBbox()));
 
