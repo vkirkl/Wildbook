@@ -18,13 +18,16 @@ import org.json.JSONObject;
 import org.ecocean.api.UploadedFiles;
 import org.ecocean.Annotation;
 import org.ecocean.Encounter;
+import org.ecocean.ia.MLService;
 import org.ecocean.ia.Task;
 import org.ecocean.identity.IBEISIA;
 import org.ecocean.identity.IdentityServiceLog;
+import org.ecocean.media.AssetStore;
 import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.URLAssetStore;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.RestClient;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.Util;
 
@@ -188,7 +191,8 @@ public class MatchResult implements java.io.Serializable {
         } else {
             // these scores are direct from opensearch
             for (Annotation ann : annots) {
-                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", null));
+                MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ann, myShepherd);
+                this.prospects.add(new MatchResultProspect(ann, ann.getOpensearchScore(), "annot", ma));
             }
         }
         return this.prospects.size();
@@ -224,8 +228,9 @@ public class MatchResult implements java.io.Serializable {
         for (Map.Entry<MarkedIndividual, List<Annotation> > ent : sorted) {
             double score = new Double(ent.getValue().size()) / new Double(most);
             // the ent value (annot List) should always have at least one annot, so we use first one
-            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv",
-                null));
+            MediaAsset ma = createInspectionPairxAsset(this.queryAnnotation, ent.getValue().get(0),
+                myShepherd);
+            this.prospects.add(new MatchResultProspect(ent.getValue().get(0), score, "indiv", ma));
         }
     }
 
@@ -276,6 +281,100 @@ public class MatchResult implements java.io.Serializable {
             ex.printStackTrace();
         }
         return ma;
+    }
+
+/*
+   notes on pairx payload:
+   - image1_uris / image2_uris accept URLs or local file paths (as seen by the server)
+   - If you provide 1 image1 and N image2s, it compares that single image1 against each image2 (1-to-many)
+   - If you provide N of each, they're compared pairwise (N-to-N, max 16 pairs)
+   - bb1/bb2 are bounding boxes as [x, y, width, height]
+   - visualization_type options: "lines_and_colors", "only_lines", "only_colors"
+   - layer_key controls feature depth — earlier layers (e.g. backbone.blocks.1) give point-specific matches, later layers
+    (e.g. backbone.blocks.5) give broader region matches
+ */
+    public MediaAsset createInspectionPairxAsset(Annotation ann1, Annotation ann2,
+        Shepherd myShepherd) {
+        if ((ann1 == null) || (ann2 == null)) return null;
+        MediaAsset ma1 = ann1.getMediaAsset();
+        MediaAsset ma2 = ann2.getMediaAsset();
+        if ((ma1 == null) || (ma2 == null)) return null;
+        // we need this to find MLService endpoint
+        Encounter enc = ann1.findEncounter(myShepherd);
+        if (enc == null) return null;
+        JSONObject payload = new JSONObject();
+        payload.put("algorithm", "pairx");
+        payload.put("visualization_type", "only_colors");
+        payload.put("k_colors", 5);
+        // payload.put("k_lines", 20);
+        payload.put("model_id", "miewid-msv4.1");
+        payload.put("crop_bbox", false);
+        payload.put("layer_key", "backbone.blocks.3");
+        payload.put("image1_uris", new JSONArray(new String[] { ma1.webURL().toString() }));
+        payload.put("image2_uris", new JSONArray(new String[] { ma2.webURL().toString() }));
+        payload.put("theta1", new JSONArray(new Double[] { ann1.getTheta() }));
+        payload.put("theta2", new JSONArray(new Double[] { ann2.getTheta() }));
+        // this needs an array of array(s)
+        JSONArray tmpArr = new JSONArray();
+        tmpArr.put(0, ann1.getBbox());
+        payload.put("bb1", tmpArr);
+        tmpArr.put(0, ann2.getBbox());
+        payload.put("bb2", tmpArr);
+
+        // get the image data from pairx endpoint
+        JSONObject res = null;
+        URL pairxUrl = null;
+        try {
+            pairxUrl = _getPairxUrl(enc.getTaxonomyString());
+            if (pairxUrl == null) return null;
+            res = RestClient.postJSON(pairxUrl, payload, null);
+        } catch (Exception ex) {
+            System.out.println("[ERROR] createInspectionPairxAsset() POST to " + pairxUrl +
+                " failed: " + ex + "; payload=" + payload);
+            ex.printStackTrace();
+        }
+        if (res == null) return null;
+        JSONArray imgs = res.optJSONArray("images");
+        if ((imgs == null) || (imgs.length() < 1)) return null;
+        String b64 = imgs.optString(0, null);
+        if (b64 == null) return null;
+        // create the asset from base64 data
+        System.out.println("[DEBUG] createInspectionPairxAsset() POST to " + pairxUrl +
+            " got image data length=" + b64.length());
+        try {
+            AssetStore store = AssetStore.getDefault(myShepherd);
+            JSONObject params = store.createParameters(new File(Util.hashDirectories(this.id) +
+                "/pairx-" + this.id + "-" + ann1.getId() + "-" + ann2.getId() + ".png"));
+            MediaAsset ma = store.create(params);
+            ma.copyInBase64(b64);
+            ma.addLabel("matchInspectionPairx");
+            System.out.println("[INFO] createInspectionPairxAsset() created " + ma);
+            myShepherd.getPM().makePersistent(ma);
+            return ma;
+        } catch (Exception ex) {
+            System.out.println(
+                "[ERROR] createInspectionPairxAsset() failed to create MediaAsset: " + ex);
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public static URL _getPairxUrl(String txStr)
+    throws IOException {
+        if (txStr == null) throw new IOException("passed null taxonomy");
+        String urlStr = null;
+/*  FIXME make live when merged with vectors branch
+        try {
+            MLService mls = new MLService();
+            List<JSONObject> confs = mls.getConfigs(txStr);
+            if (confs.size() < 1) throw new IOException("empty MLService configs for tx=" + txStr);
+            urlStr = confs.get(0).optString("api_endpoint", null);
+        } catch (IAException ex) {
+            throw new IOException(ex);
+        }
+ */
+        if (urlStr == null) return null;
+        return new URL(urlStr + "/explain/");
     }
 
     public JSONObject getTaskParameters() {
