@@ -363,7 +363,6 @@ public class MatchResult implements java.io.Serializable {
     throws IOException {
         if (txStr == null) throw new IOException("passed null taxonomy");
         String urlStr = null;
-/*  FIXME make live when merged with vectors branch
         try {
             MLService mls = new MLService();
             List<JSONObject> confs = mls.getConfigs(txStr);
@@ -372,7 +371,6 @@ public class MatchResult implements java.io.Serializable {
         } catch (IAException ex) {
             throw new IOException(ex);
         }
- */
         if (urlStr == null) return null;
         return new URL(urlStr + "/explain/");
     }
