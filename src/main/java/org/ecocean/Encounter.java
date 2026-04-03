@@ -1645,11 +1645,14 @@ public class Encounter extends Base implements java.io.Serializable {
     // this is for jsonForApiGet()
     public org.json.JSONObject spotMappingJsonForApiGet() {
         org.json.JSONObject rtn = new org.json.JSONObject();
-        if (!CommonConfiguration.useSpotPatternRecognition("context0")) return rtn; // not supported
+        boolean enabled = CommonConfiguration.useSpotPatternRecognition("context0");
+        rtn.put("enabled", enabled);
+        if (!enabled) return rtn;
         rtn.put("numberLeftSpots", getNumSpots());
         rtn.put("numberRightSpots", getNumRightSpots());
         rtn.put("hasLeftSpots", getNumSpots() > 0);
         rtn.put("hasRightSpots", getNumRightSpots() > 0);
+        rtn.put("hasSpots", (getNumSpots() + getNumRightSpots()) > 0);
         return rtn;
     }
 
