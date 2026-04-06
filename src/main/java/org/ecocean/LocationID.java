@@ -6,8 +6,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
-import java.util.Properties;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.json.JSONArray;
@@ -18,6 +19,7 @@ import org.json.JSONTokener;
 import javax.servlet.http.HttpServletRequest;
 
 public class LocationID {
+    private static final Logger logger = LogManager.getLogger(LocationID.class);
     // the JSON representation of /bundles/locationID.json
     private static ConcurrentHashMap<String, JSONObject> jsonMaps = new ConcurrentHashMap<String,
         JSONObject>();
@@ -42,8 +44,8 @@ public class LocationID {
     }
 
     /*
-     * Return the JSON representation of /bundles/locationID.json but check the request for the user and then try to send the appropriate org argument
-     * if it exists.
+     * Return the JSON representation of /bundles/locationID.json but check the request for the
+     * user and then try to send the appropriate org argument if it exists.
      */
     public static JSONObject getLocationIDStructure(HttpServletRequest request) {
         String qualifier = null;
@@ -77,34 +79,38 @@ public class LocationID {
         if (qualifier != null) {
             filename = "locationID_" + qualifier + ".json";
         }
-        String shepherdDataDir = CommonConfiguration.getShepherdDataDir("context0");
-        Properties contextsProps = ShepherdProperties.getContextsProperties();
-        if (contextsProps.getProperty("context0" + "DataDir") != null) {
-            shepherdDataDir = contextsProps.getProperty("context0" + "DataDir");
-        }
-        // first look for the file in the override director
-        File configFile = new File("webapps/" + shepherdDataDir + "/WEB-INF/classes/bundles/" +
-            filename);
-        // if our config file exists in the override dir, use it
+        // Look for the file in the configured data directory override
+        File configFile = new File(
+            CommonConfiguration.getWildbookDataDir() + "/WEB-INF/classes/bundles/" + filename);
         if (configFile.exists()) {
+            logger.debug("Loading {} from override path {}", filename, configFile.getAbsolutePath());
             try {
                 is = new FileInputStream(configFile);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                logger.error("Failed to open locationID override file {}",
+                    configFile.getAbsolutePath(), e);
+            }
         }
-        // if the override file does not exist, fall back to the webapp and look for the file there
-        else {
+        // Fall back to the webapp classpath
+        if (is == null) {
+            logger.debug("Override not found for {}, falling back to classpath", filename);
             is = LocationID.class.getResourceAsStream("/bundles/" + filename);
         }
-        // if we couldn't find it in the override dir or locally, load it from the web app root
+        // Last resort: load the default locationID.json from classpath
         if (is == null) {
+            logger.warn("Qualified file {} not on classpath, loading default locationID.json",
+                filename);
             filename = "locationID.json";
             is = LocationID.class.getResourceAsStream("/bundles/" + filename);
         }
+        if (is == null) {
+            logger.error("Could not locate locationID resource for qualifier '{}' "
+                + "from override path or classpath — location data will not load", qualifier);
+            return;
+        }
         JSONTokener tokener = new JSONTokener(is);
-        String key = "default";
-        if (qualifier != null) key = qualifier;
+        String key = (qualifier != null) ? qualifier : "default";
         jsonMaps.put(key, new JSONObject(tokener));
-        // System.out.println("jsonMaps: "+jsonMaps.toString());
     }
 
     public static String findParameterInLocationIdTreeDefaultUpTreeNodes(String parameterName,
@@ -115,7 +121,8 @@ public class LocationID {
         if (parameter != null)
             parentParameter = parameter; // basically, parentParameter is the best we have at this point
         if (nodeId.equals(tree.optString("id", null)))
-            return parentParameter; // we hit target node - we *must* return with our best we found now we keep trying if we can
+            // we hit target node — return best found; keep trying if we can
+            return parentParameter;
         JSONArray kids = tree.optJSONArray("locationID");
         if ((kids == null) || (kids.length() < 1))
             return null; // no more depth here
@@ -128,7 +135,8 @@ public class LocationID {
             if (kidParameter != null)
                 return kidParameter; // recursion ftw!
         }
-        return null; // got nothing from any of the kid-trees, so we are out of luck at this point (basically never found nodeId)
+        // got nothing from any of the kid-trees — nodeId not found
+        return null;
     }
 
     public static String findPrefix(JSONObject tree, String nodeId, String parentPrefix) {
@@ -235,7 +243,7 @@ public class LocationID {
                 locPrefix = findPrefix(getLocationIDStructure(qualifier), locationID, null);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("Failed to get prefix for locationID {}", locationID, ex);
         }
         return locPrefix;
     }
@@ -248,7 +256,7 @@ public class LocationID {
                 digitPadding = Integer.parseInt(findPrefixPadding(getLocationIDStructure(qualifier),
                     locationID, null));
             } catch (Exception ex) {
-                ex.printStackTrace();
+                logger.error("Failed to get prefix digit padding for locationID {}", locationID, ex);
             }
         }
         return digitPadding;
@@ -264,7 +272,8 @@ public class LocationID {
     }
 
     /*
-     * Return a List of Strings of the "id" attributes of the parent locationID and the IDs of all of its children in the order traversed
+     * Return a List of Strings of the "id" attributes of the parent locationID
+     * and the IDs of all of its children in the order traversed.
      */
     public static List<String> getIDForParentAndChildren(String locationID, ArrayList<String> al,
         String qualifier) {
@@ -407,7 +416,8 @@ public class LocationID {
         return menu;
     }
 
-    // for future reference, when feeling brave: https://stackoverflow.com/questions/18023493/bootstrap-dropdown-sub-menu-missing
+    // for future reference, when feeling brave:
+    // https://stackoverflow.com/questions/18023493/bootstrap-dropdown-sub-menu-missing
     public static String getBootstrapList(final JSONObject locJson, final String urlPrefix,
         int indent) {
         String li = "";
@@ -433,8 +443,10 @@ public class LocationID {
     }
 
     // this will take in a list of locationIDs and expand them to include any children they may have
-    // it returns a list that does not have duplicates, so the input list can contain relatives and all should be fine
-    // please note it also will leave untouched any IDs which *are not in LocationID.json*, so they will not be filtered out
+    // it returns a list that does not have duplicates, so the input list can contain relatives
+    // and all should be fine
+    // please note it also will leave untouched any IDs which *are not in LocationID.json*,
+    // so they will not be filtered out
     // (this is intentional behavior so that an ID need not be in LocationID.json to be considered valid here)
     public static List<String> expandIDs(List<String> ids) {
         return expandIDs(ids, null);

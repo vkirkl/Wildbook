@@ -103,6 +103,7 @@ services:
       DOMAIN_NAME: "${DOMAIN_NAME:-unknown}"
       HOSTNAME: "${HOSTNAME:-localhost}"
       WILDBOOK_LOG_LEVEL: "${WILDBOOK_LOG_LEVEL:-INFO}"
+      WILDBOOK_DATA_DIR: "${WILDBOOK_DATA_DIR:-/usr/local/tomcat/webapps/wildbook_data_dir}"
 
   opensearch:
     image: opensearchproject/opensearch:2.15.0

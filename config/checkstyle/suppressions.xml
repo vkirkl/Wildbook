@@ -191,7 +191,6 @@
     <suppress files="LightRestServlet.java" checks=".*"/>
     <suppress files="LinSys.java" checks=".*"/>
     <suppress files="LocalAssetStore.java" checks=".*"/>
-    <suppress files="LocationID.java" checks=".*"/>
     <suppress files="Locus.java" checks=".*"/>
     <suppress files="Login.java" checks=".*"/>
     <suppress files="LoginUser.java" checks=".*"/>
