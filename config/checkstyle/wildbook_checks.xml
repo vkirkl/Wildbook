@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Wildbook Checkstyle rules.
+  Philosophy: catch real problems (System.out, wildcard imports, tabs, bad logger names);
+  don't enforce cosmetic style that would require rewriting every legacy file.
+  4-space indentation matches the existing codebase.
+  Add rules here as the codebase matures.
+-->
+<module name="Checker">
+  <property name="severity" value="error"/>
+  <property name="fileExtensions" value="java"/>
+
+  <!-- No tab characters anywhere in source -->
+  <module name="FileTabCharacter">
+    <property name="eachLine" value="true"/>
+  </module>
+
+  <!-- Files must end with a newline -->
+  <module name="NewlineAtEndOfFile"/>
+
+  <!-- ── Line length ──────────────────────────────────────────── -->
+  <module name="LineLength">
+    <property name="max" value="120"/>
+    <!-- Allow long import and package lines -->
+    <property name="ignorePattern" value="^(import|package) .*"/>
+  </module>
+
+  <module name="TreeWalker">
+
+    <!-- ── Imports ─────────────────────────────────────────────── -->
+    <!-- No wildcard imports (import java.util.*) -->
+    <module name="AvoidStarImport"/>
+    <!-- No unused imports -->
+    <module name="UnusedImports"/>
+    <!-- No importing from sun.* packages -->
+    <module name="IllegalImport"/>
+
+    <!-- ── Correctness ─────────────────────────────────────────── -->
+    <!-- Override hashCode whenever equals is overridden -->
+    <module name="EqualsHashCode"/>
+
+    <!-- ── Banned API usage ────────────────────────────────────── -->
+    <!-- No System.out or System.err — use a logger -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="System\.(out|err)\."/>
+      <property name="message" value="Use a Log4j2 logger instead of System.out/err."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+    <!-- No bare e.printStackTrace() — use logger.error(msg, e) -->
+    <module name="RegexpSinglelineJava">
+      <property name="format" value="\.printStackTrace\("/>
+      <property name="message" value="Use logger.error(message, exception) instead of printStackTrace()."/>
+      <property name="ignoreComments" value="true"/>
+    </module>
+
+    <!-- ── Logger naming (enforced by code review, not Checkstyle) ─── -->
+    <!-- Convention: static Log4j2 logger fields must be named 'logger' (lowercase). -->
+    <!-- Automated enforcement requires type-aware tooling (PMD/ErrorProne) — deferred. -->
+
+    <!-- ── Whitespace ──────────────────────────────────────────── -->
+    <!-- No trailing whitespace on any line -->
+    <module name="Regexp">
+      <property name="format" value="[ \t]+$"/>
+      <property name="message" value="Trailing whitespace."/>
+      <property name="illegalPattern" value="true"/>
+    </module>
+
+  </module>
+</module>
