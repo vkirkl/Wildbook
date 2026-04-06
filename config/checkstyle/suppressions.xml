@@ -185,7 +185,6 @@
     <suppress files="Instant.java" checks=".*"/>
     <suppress files="InterconnectSubmitSpots.java" checks=".*"/>
     <suppress files="JavascriptGlobals.java" checks=".*"/>
-    <suppress files="JsonProperties.java" checks=".*"/>
     <suppress files="KeywordHandler.java" checks=".*"/>
     <suppress files="KinalyzerExport.java" checks=".*"/>
     <suppress files="LabeledKeyword.java" checks=".*"/>
