@@ -17,7 +17,11 @@ import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class CommonConfiguration {
+    private static final Logger logger = LogManager.getLogger(CommonConfiguration.class);
     private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
     private static final String GOOGLE_CONFIGURATION_PROPERTIES = "googleKeys.properties";
 
@@ -379,6 +383,28 @@ public class CommonConfiguration {
         } else {
             return "wildbook_data_dir";
         }
+    }
+
+    /**
+     * Returns the absolute path to the Wildbook data directory as visible inside
+     * the container. Reads WILDBOOK_DATA_DIR from the environment; falls back to
+     * the standard Docker volume mount path if unset or blank.
+     */
+    public static String getWildbookDataDir() {
+        return getWildbookDataDir(System.getenv("WILDBOOK_DATA_DIR"));
+    }
+
+    /**
+     * Package-private overload used by tests to inject the env var value directly,
+     * avoiding the need to manipulate the real process environment.
+     */
+    static String getWildbookDataDir(String envValue) {
+        String trimmed = (envValue == null) ? "" : envValue.trim();
+        String resolved = trimmed.isEmpty()
+            ? "/usr/local/tomcat/webapps/wildbook_data_dir"
+            : trimmed;
+        logger.debug("WILDBOOK_DATA_DIR resolved to {}", resolved);
+        return resolved;
     }
 
     public static Boolean getDefaultReceiveEmails(String context) {
