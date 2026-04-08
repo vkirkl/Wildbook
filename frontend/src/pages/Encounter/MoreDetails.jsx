@@ -90,7 +90,7 @@ export const MoreDetails = observer(({ store = {} }) => {
             }}
             style={{
               cursor: "pointer",
-              color: !store.projectsSection ? "black" : primary700,
+              color: !store.spotMappingSection ? "black" : primary700,
             }}
           >
             <p>
