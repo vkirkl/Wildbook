@@ -80,24 +80,26 @@ export const MoreDetails = observer(({ store = {} }) => {
             </p>
             <i className="bi bi-chevron-right"></i>
           </div>
-          <div
-            className="d-flex align-items-center justify-content-between mb-3 w-100"
-            onClick={() => {
-              store.setProjectsSection(false);
-              store.setMeasurementsAndTrackingSection(false);
-              store.setBiologicalSamplesSection(false);
-              store.setSpotMappingSection(true);
-            }}
-            style={{
-              cursor: "pointer",
-              color: !store.spotMappingSection ? "black" : primary700,
-            }}
-          >
-            <p>
-              <FormattedMessage id="SPOT_MAPPING_ALGORITHMS" />
-            </p>
-            <i className="bi bi-chevron-right"></i>
-          </div>
+          {store?.encounterData?.spotMapping?.enabled && (
+            <div
+              className="d-flex align-items-center justify-content-between mb-3 w-100"
+              onClick={() => {
+                store.setProjectsSection(false);
+                store.setMeasurementsAndTrackingSection(false);
+                store.setBiologicalSamplesSection(false);
+                store.setSpotMappingSection(true);
+              }}
+              style={{
+                cursor: "pointer",
+                color: !store.spotMappingSection ? "black" : primary700,
+              }}
+            >
+              <p>
+                <FormattedMessage id="SPOT_MAPPING_ALGORITHMS" />
+              </p>
+              <i className="bi bi-chevron-right"></i>
+            </div>
+          )}
         </Col>
         {store.measurementsAndTrackingSection && (
           <Col
