@@ -22,6 +22,7 @@ import {
 import NewMatchStore from "./NewMatchStore";
 import ImageModalStore from "./ImageModalStore";
 import { Toast } from "react-bootstrap";
+
 dayjs.extend(customParseFormat);
 
 class EncounterStore {
@@ -105,6 +106,8 @@ class EncounterStore {
   _selectedProjects = null;
 
   _spotMappingSection = false;
+  _spotMappingLoading = false;
+  _selectedSpotMappingSide = "";
 
   _sectionDrafts = new Map(
     Object.keys(SECTION_FIELD_PATHS).map((name) => [name, {}]),
@@ -136,6 +139,7 @@ class EncounterStore {
   get encounterData() {
     return this._encounterData;
   }
+
   setEncounterData(newEncounterData) {
     this._encounterData = newEncounterData;
     this._lat = newEncounterData?.locationGeoPoint?.lat ?? null;
@@ -152,11 +156,13 @@ class EncounterStore {
         samplingProtocol: m.samplingProtocol ?? "",
       }));
     this.resetAllDrafts();
+    this.syncSelectedSpotMappingSide();
   }
 
   get access() {
     return this._access;
   }
+
   setAccess(newAccess) {
     this._access = newAccess;
   }
@@ -189,6 +195,7 @@ class EncounterStore {
   get overviewActive() {
     return this._overviewActive;
   }
+
   setOverviewActive(isActive) {
     this._overviewActive = isActive;
   }
@@ -196,6 +203,7 @@ class EncounterStore {
   get editDateCard() {
     return this._editDateCard;
   }
+
   setEditDateCard(isEditing) {
     this._editDateCard = isEditing;
   }
@@ -203,6 +211,7 @@ class EncounterStore {
   get editIdentifyCard() {
     return this._editIdentifyCard;
   }
+
   setEditIdentifyCard(isEditing) {
     this._editIdentifyCard = isEditing;
   }
@@ -210,6 +219,7 @@ class EncounterStore {
   get editMetadataCard() {
     return this._editMetadataCard;
   }
+
   setEditMetadataCard(isEditing) {
     this._editMetadataCard = isEditing;
   }
@@ -217,6 +227,7 @@ class EncounterStore {
   get editLocationCard() {
     return this._editLocationCard;
   }
+
   setEditLocationCard(isEditing) {
     this._editLocationCard = isEditing;
   }
@@ -224,6 +235,7 @@ class EncounterStore {
   get editAttributesCard() {
     return this._editAttributesCard;
   }
+
   setEditAttributesCard(isEditing) {
     this._editAttributesCard = isEditing;
   }
@@ -285,6 +297,7 @@ class EncounterStore {
   get newPersonName() {
     return this._newPersonName;
   }
+
   setNewPersonName(name) {
     this._newPersonName = name;
   }
@@ -292,6 +305,7 @@ class EncounterStore {
   get newPersonEmail() {
     return this._newPersonEmail;
   }
+
   setNewPersonEmail(email) {
     this._newPersonEmail = email;
   }
@@ -299,6 +313,7 @@ class EncounterStore {
   get newPersonRole() {
     return this._newPersonRole;
   }
+
   setNewPersonRole(role) {
     this._newPersonRole = role;
   }
@@ -306,6 +321,7 @@ class EncounterStore {
   get selectedLocation() {
     return this._selectedMatchLocation;
   }
+
   setSelectedLocation(location) {
     this._selectedMatchLocation = location;
   }
@@ -313,6 +329,7 @@ class EncounterStore {
   get owner() {
     return this._owner;
   }
+
   setMyData(owner) {
     this._owner = owner;
   }
@@ -320,6 +337,7 @@ class EncounterStore {
   get selectedAlgorithm() {
     return this._selectedAlgorithm;
   }
+
   setselectedAlgorithm(algorithm) {
     this._selectedAlgorithm = algorithm;
   }
@@ -480,6 +498,7 @@ class EncounterStore {
   get measurementsAndTrackingSection() {
     return this._measurementsAndTrackingSection;
   }
+
   setMeasurementsAndTrackingSection(isEnabled) {
     this._measurementsAndTrackingSection = isEnabled;
   }
@@ -487,6 +506,7 @@ class EncounterStore {
   get editTracking() {
     return this._editTracking;
   }
+
   setEditTracking(isEditing) {
     this._editTracking = isEditing;
   }
@@ -494,6 +514,7 @@ class EncounterStore {
   get editMeasurements() {
     return this._editMeasurements;
   }
+
   setEditMeasurements(isEditing) {
     this._editMeasurements = isEditing;
   }
@@ -501,6 +522,7 @@ class EncounterStore {
   get biologicalSamplesSection() {
     return this._biologicalSamplesSection;
   }
+
   setBiologicalSamplesSection(isEnabled) {
     this._biologicalSamplesSection = isEnabled;
   }
@@ -508,6 +530,7 @@ class EncounterStore {
   get editBiologicalSamples() {
     return this._editBiologicalSamples;
   }
+
   setEditBiologicalSamples(isEditing) {
     this._editBiologicalSamples = isEditing;
   }
@@ -515,6 +538,7 @@ class EncounterStore {
   get projectsSection() {
     return this._projectsSection;
   }
+
   setProjectsSection(isEnabled) {
     this._projectsSection = isEnabled;
   }
@@ -522,13 +546,31 @@ class EncounterStore {
   get spotMappingSection() {
     return this._spotMappingSection;
   }
+
   setSpotMappingSection(isEnabled) {
     this._spotMappingSection = isEnabled;
+  }
+
+  get spotMappingLoading() {
+    return this._spotMappingLoading;
+  }
+
+  setSpotMappingLoading(isLoading) {
+    this._spotMappingLoading = isLoading;
+  }
+
+  get selectedSpotMappingSide() {
+    return this._selectedSpotMappingSide;
+  }
+
+  setSelectedSpotMappingSide(side) {
+    this._selectedSpotMappingSide = side;
   }
 
   get selectedProjects() {
     return this._selectedProjects;
   }
+
   setSelectedProjects(projectIds) {
     this._selectedProjects = projectIds;
   }
@@ -536,6 +578,7 @@ class EncounterStore {
   get selectedImageIndex() {
     return this._selectedImageIndex;
   }
+
   setSelectedImageIndex(index) {
     this._selectedImageIndex = index;
   }
@@ -553,6 +596,7 @@ class EncounterStore {
   get selectedAnnotationId() {
     return this._selectedAnnotationId;
   }
+
   setSelectedAnnotationId(annotationId) {
     this._selectedAnnotationId = annotationId;
   }
@@ -582,6 +626,7 @@ class EncounterStore {
   get lat() {
     return this._lat;
   }
+
   setLat(newLat) {
     this.errors.setFieldError("location", "latitude", null);
     this._lat = newLat;
@@ -606,6 +651,7 @@ class EncounterStore {
   get lon() {
     return this._lon;
   }
+
   setLon(newLon) {
     this.errors.setFieldError("location", "longitude", null);
     this._lon = newLon;
@@ -630,24 +676,31 @@ class EncounterStore {
   get taxonomyOptions() {
     return this._taxonomyOptions;
   }
+
   get livingStatusOptions() {
     return this._livingStatusOptions;
   }
+
   get sexOptions() {
     return this._sexOptions;
   }
+
   get lifeStageOptions() {
     return this._lifeStageOptions;
   }
+
   get behaviorOptions() {
     return this._behaviorOptions;
   }
+
   get groupRoleOptions() {
     return this._groupRoleOptions;
   }
+
   get patterningCodeOptions() {
     return this._patterningCodeOptions;
   }
+
   get locationIdOptions() {
     if (this._siteSettingsData?.locationData?.locationID) {
       this._locationIdOptions = convertToTreeDataWithName(
@@ -677,6 +730,7 @@ class EncounterStore {
   get metalTagValues() {
     return this._metalTagValues;
   }
+
   setMetalTagValues(newValues) {
     this._metalTagValues = newValues;
   }
@@ -684,6 +738,7 @@ class EncounterStore {
   get acousticTagValues() {
     return this._acousticTagValues;
   }
+
   setAcousticTagValues(newValues) {
     this._acousticTagValues = { ...this._acousticTagValues, ...newValues };
   }
@@ -691,6 +746,7 @@ class EncounterStore {
   get satelliteTagValues() {
     return this._satelliteTagValues;
   }
+
   setSatelliteTagValues(newValues) {
     this._satelliteTagValues = { ...this._satelliteTagValues, ...newValues };
   }
@@ -758,12 +814,15 @@ class EncounterStore {
   get metalTagsEnabled() {
     return this.siteSettingsData?.metalTagsEnabled || false;
   }
+
   get acousticTagEnabled() {
     return this.siteSettingsData?.acousticTagEnabled || false;
   }
+
   get satelliteTagEnabled() {
     return this.siteSettingsData?.satelliteTagEnabled || false;
   }
+
   get showMeasurements() {
     return this.siteSettingsData?.showMeasurements;
   }
@@ -1369,6 +1428,161 @@ class EncounterStore {
       toast.error("Failed to save changes");
       throw error;
     }
+  }
+
+  get spotMappingData() {
+    return this._encounterData?.spotMapping || {};
+  }
+
+  get spotMappingEnabled() {
+    return Boolean(this.spotMappingData?.enabled);
+  }
+
+  get hasLeftSpots() {
+    return Boolean(this.spotMappingData?.hasLeftSpots);
+  }
+
+  get hasRightSpots() {
+    return Boolean(this.spotMappingData?.hasRightSpots);
+  }
+
+  get hasAnySpots() {
+    return Boolean(this.spotMappingData?.hasSpots);
+  }
+
+  get numberLeftSpots() {
+    return this.spotMappingData?.numberLeftSpots ?? 0;
+  }
+
+  get numberRightSpots() {
+    return this.spotMappingData?.numberRightSpots ?? 0;
+  }
+
+  get availableSpotMappingSides() {
+    const sides = [];
+    if (this.hasLeftSpots) sides.push("left");
+    if (this.hasRightSpots) sides.push("right");
+    return sides;
+  }
+
+  get extractedSpotsText() {
+    if (!this.hasAnySpots) return "No spots extracted yet.";
+
+    const texts = [];
+    if (this.hasLeftSpots) {
+      texts.push(`${this.numberLeftSpots} left-side spots added`);
+    }
+    if (this.hasRightSpots) {
+      texts.push(`${this.numberRightSpots} right-side spots added`);
+    }
+
+    return texts.join(" / ");
+  }
+
+  get spotMappingAlgorithmTitle() {
+    return "Modified Groth and I3S";
+  }
+
+  get selectedMediaAssetId() {
+    return this._encounterData?.mediaAssets?.[this._selectedImageIndex]?.id;
+  }
+
+  get grothResultUrl() {
+    const side = this._selectedSpotMappingSide;
+    if (!side) return "";
+
+    return side === "right"
+      ? this._encounterData?.spotMapping?.grothRightResultUrl || ""
+      : this._encounterData?.spotMapping?.grothLeftResultUrl || "";
+  }
+
+  get i3sResultUrl() {
+    const side = this._selectedSpotMappingSide;
+    if (!side) return "";
+
+    return side === "right"
+      ? this._encounterData?.spotMapping?.i3sRightResultUrl || ""
+      : this._encounterData?.spotMapping?.i3sLeftResultUrl || "";
+  }
+
+  syncSelectedSpotMappingSide() {
+    const availableSides = this.availableSpotMappingSides;
+
+    if (!availableSides.length) {
+      this._selectedSpotMappingSide = "";
+      return;
+    }
+
+    if (!availableSides.includes(this._selectedSpotMappingSide)) {
+      this._selectedSpotMappingSide = availableSides[0];
+    }
+  }
+
+  async removeExtractedSpots(side = this._selectedSpotMappingSide) {
+    if (!this._encounterData?.id) return;
+
+    this.setSpotMappingLoading(true);
+
+    try {
+      const body = new URLSearchParams();
+      body.append("action", "removeSpots");
+      body.append("number", this._encounterData.id);
+      body.append("rightSide", String(side === "right"));
+      body.append("Remove3", "Remove");
+
+      const response = await axios.post("/EncounterRemoveSpots", body, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        validateStatus: () => true,
+      });
+
+      if (response.status !== 200) {
+        throw new Error("REMOVE_SPOTS_FAILED");
+      }
+
+      await this.refreshEncounterData();
+      toast.success("Extracted spots removed successfully!");
+    } catch (error) {
+      toast.error("Failed to remove extracted spots");
+      throw error;
+    } finally {
+      this.setSpotMappingLoading(false);
+    }
+  }
+
+  startSpotMappingScan(side = this._selectedSpotMappingSide) {
+    if (!this._encounterData?.id || !side) return;
+
+    const spotCount =
+      side === "right" ? this.numberRightSpots : this.numberLeftSpots;
+
+    if (spotCount < 4) {
+      toast.error("Each side needs at least 4 spots before starting a scan.");
+      return;
+    }
+
+    const form = document.createElement("form");
+    form.method = "post";
+    form.action = "/GrothMatch";
+    form.target = "_new";
+    form.style.display = "none";
+
+    const addField = (name, value) => {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+
+    addField("encounterNumber", this._encounterData.id);
+    addField("rightSide", String(side === "right"));
+    addField("scan", "start scan");
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
   }
 
   async refreshEncounterData() {
