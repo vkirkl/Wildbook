@@ -1538,7 +1538,7 @@ class EncounterStore {
       });
 
       if (response.status !== 200) {
-        throw new Error("REMOVE_SPOTS_FAILED");
+        toast.error("Failed to remove extracted spots");
       }
 
       await this.refreshEncounterData();

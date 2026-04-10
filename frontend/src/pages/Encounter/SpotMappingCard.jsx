@@ -70,7 +70,6 @@ export const SpotMappingCard = observer(({ store = {} }) => {
             onClick={async (e) => {
               e.stopPropagation();
               await store?.removeExtractedSpots?.(side);
-              window.location.reload();
             }}
           >
             <RemoveIcon />
