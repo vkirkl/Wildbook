@@ -216,24 +216,30 @@ export const SpotMappingCard = observer(({ store = {} }) => {
                     defaultMessage="Scan entire database using the {groth} and {i3s} algorithms."
                     values={{
                       groth: (
-                        <span
+                        <a
+                          href="https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{
                             color: cyan700,
                             textDecoration: "underline",
                           }}
                         >
                           Modified Groth
-                        </span>
+                        </a>
                       ),
                       i3s: (
-                        <span
+                        <a
+                          href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           style={{
                             color: cyan700,
                             textDecoration: "underline",
                           }}
                         >
                           I3S
-                        </span>
+                        </a>
                       ),
                     }}
                   />
