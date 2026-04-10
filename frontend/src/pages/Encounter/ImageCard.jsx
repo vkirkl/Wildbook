@@ -525,34 +525,35 @@ const ImageCard = observer(({ store = {} }) => {
           {tip.text}
         </Tooltip>
 
-        {store.encounterData?.mediaAssets?.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 5,
-              right: 45,
-              cursor: "pointer",
-              zIndex: 20,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
+        {store.encounterData?.mediaAssets?.length > 0 &&
+          store?.encounterData?.spotMapping?.enabled && (
+            <div
+              style={{
+                position: "absolute",
+                top: 5,
+                right: 45,
+                cursor: "pointer",
+                zIndex: 20,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
 
-              const mediaAssetId =
-                store.encounterData?.mediaAssets?.[store.selectedImageIndex]
-                  ?.id;
+                const mediaAssetId =
+                  store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                    ?.id;
 
-              if (!mediaAssetId) return;
+                if (!mediaAssetId) return;
 
-              window.open(
-                `/encounters/encounterSpotTool.jsp?imageID=${encodeURIComponent(mediaAssetId)}`,
-                "_blank",
-                "noopener,noreferrer",
-              );
-            }}
-          >
-            <SpotMappingIcon2 />
-          </div>
-        )}
+                window.open(
+                  `/encounters/encounterSpotTool.jsp?imageID=${encodeURIComponent(mediaAssetId)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+            >
+              <SpotMappingIcon2 />
+            </div>
+          )}
         {store.encounterData?.mediaAssets.length > 0 && (
           <div style={{ position: "absolute", top: 5, right: 5 }}>
             <FullscreenIcon />
