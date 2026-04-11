@@ -12,12 +12,16 @@
 %>
 <%@ page import="org.ecocean.shepherd.core.Shepherd" %>
 <%@ page import="org.ecocean.shepherd.core.ShepherdProperties" %>
+<%@ page import="org.apache.logging.log4j.LogManager" %>
+<%@ page import="org.apache.logging.log4j.Logger" %>
+<%@ page import="org.ecocean.servlet.IndexPageHelper" %>
 
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <%
 String context=ServletUtilities.getContext(request);
+final Logger logger = LogManager.getLogger("index.jsp");
 
 //set up our Shepherd
 
@@ -37,7 +41,7 @@ props = ShepherdProperties.getProperties("index.properties", langCode,context);
 
 //check for and inject a default user 'tomcat' if none exists
 if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
+  logger.warn("Wildbook not initialized at page render time; calling initializeWildbook");
   %>
     <script type="text/javascript">
       console.log("Wildbook is not initialized!");
@@ -61,12 +65,6 @@ int numUsers=0;
 myShepherd.beginDBTransaction();
 QueryCache qc=QueryCacheFactory.getQueryCache(context);
 
-//String url = "/react/login";
-//response.sendRedirect(url);
-//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-//dispatcher.forward(request, response);
-
-
 try{
 
 
@@ -82,9 +80,8 @@ try{
 
 }
 catch(Exception e){
-    System.out.println("INFO: *** If you are seeing an exception here (via index.jsp) your likely need to setup QueryCache");
-    System.out.println("      *** This entails configuring a directory via cache.properties and running appadmin/testQueryCache.jsp");
-    e.printStackTrace();
+    logger.warn("QueryCache not configured — check cache.properties and run appadmin/testQueryCache.jsp");
+    logger.error("QueryCache query failed", e);
 }
 
 %>
@@ -268,13 +265,15 @@ h2.vidcap {
 
             <!-- Random user profile to select -->
             <%
-            //myShepherd.beginDBTransaction();
             try{
 								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
             if(featuredUser!=null){
-                String profilePhotoURL="images/user-profile-white-transparent.png";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                String profilePhotoURL = IndexPageHelper.DEFAULT_PHOTO_URL;
+                if (featuredUser.getUserImage() != null) {
+                    profilePhotoURL = IndexPageHelper.buildSafeProfilePhotoUrl(
+                        CommonConfiguration.getDataDirectoryName(context),
+                        featuredUser.getUsername(),
+                        featuredUser.getUserImage().getFilename());
                 }
 
             %>
@@ -301,11 +300,7 @@ h2.vidcap {
             } // end if
 
             }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	//myShepherd.rollbackDBTransaction();
-            }
+            catch(Exception e){ logger.error("Failed to render featured user section", e); }
             %>
 
 
@@ -342,7 +337,7 @@ h2.vidcap {
 	                        <%
 	                        }
 						}
-                       catch(Exception e){e.printStackTrace();}
+                       catch(Exception e){ logger.error("Failed to render recent encounters section", e); }
                        finally{
                     	   myShepherd.rollbackDBTransaction();
 
@@ -359,12 +354,9 @@ h2.vidcap {
                     <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    //myShepherd.beginDBTransaction();
                     try{
-	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-                            long startTime = System.currentTimeMillis() - Long.valueOf(1000L*60L*60L*24L*30L);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
+                            final long THIRTY_DAYS_MS = 30L * 24L * 60L * 60L * 1000L;
+                            long startTime = System.currentTimeMillis() - THIRTY_DAYS_MS;
 
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
@@ -375,14 +367,15 @@ h2.vidcap {
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
 	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/user-profile-white-transparent.png";
+	                        	  String profilePhotoURL = IndexPageHelper.DEFAULT_PHOTO_URL;
 	                              User thisUser=myShepherd.getUser(spotter);
-	                              if(thisUser.getUserImage()!=null){
-	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+	                              if (thisUser.getUserImage() != null) {
+	                                  profilePhotoURL = IndexPageHelper.buildSafeProfilePhotoUrl(
+	                                      CommonConfiguration.getDataDirectoryName(context),
+	                                      thisUser.getUsername(),
+	                                      thisUser.getUserImage().getFilename());
 	                              }
-	                              //System.out.println(spotters.values().toString());
 	                            Integer myInt=spotters.get(spotter);
-	                            //System.out.println(spotters);
 
 	                          %>
 	                                <li>
@@ -402,8 +395,7 @@ h2.vidcap {
 	                    }
 	                   } //end while
                     }
-                    catch(Exception e){e.printStackTrace();}
-                    //finally{myShepherd.rollbackDBTransaction();}
+                    catch(Exception e){ logger.error("Failed to render top spotters section", e); }
 
                    %>
 
