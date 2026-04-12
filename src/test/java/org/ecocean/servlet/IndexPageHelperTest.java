@@ -88,4 +88,11 @@ class IndexPageHelperTest {
             "../data", "alice", "photo.jpg");
         assertEquals(IndexPageHelper.DEFAULT_PHOTO_URL, url);
     }
+
+    @Test
+    void buildSafeProfilePhotoUrl_usernameWithDoubleQuote_returnsDefault() {
+        String url = IndexPageHelper.buildSafeProfilePhotoUrl(
+            "wildbook_data_dir", "evil\"user", "photo.jpg");
+        assertEquals(IndexPageHelper.DEFAULT_PHOTO_URL, url);
+    }
 }

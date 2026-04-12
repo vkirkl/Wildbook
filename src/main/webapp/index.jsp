@@ -15,7 +15,8 @@
 <%@ page import="org.apache.logging.log4j.LogManager" %>
 <%@ page import="org.apache.logging.log4j.Logger" %>
 <%@ page import="org.ecocean.servlet.IndexPageHelper" %>
-
+<%@ page import="java.net.URLEncoder" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -70,8 +71,7 @@ try{
 
     //numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numMarkedIndividuals=qc.getQueryByName("numMarkedIndividuals").executeCountQuery(myShepherd).intValue();
-    numEncounters=myShepherd.getNumEncounters();
-    //numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
+    numEncounters=qc.getQueryByName("numEncounters").executeCountQuery(myShepherd).intValue();
     //numDataContributors=myShepherd.getAllUsernamesWithRoles().size();
     numDataContributors=qc.getQueryByName("numUsersWithRoles").executeCountQuery(myShepherd).intValue();
     numUsers=qc.getQueryByName("numUsers").executeCountQuery(myShepherd).intValue();
@@ -282,16 +282,16 @@ h2.vidcap {
                         <h2><%=props.getProperty("ourContributors") %></h2>
                         <div>
                             <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left lazyload" />
-                            <p><%=featuredUser.getFullName() %>
+                            <p><c:out value="<%= featuredUser.getFullName() %>"/>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
                                 %>
-                                <i><%=featuredUser.getAffiliation() %></i>
+                                <i><c:out value="<%= featuredUser.getAffiliation() %>"/></i>
                                 <%
                                 }
                                 %>
                             </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
+                            <p><c:out value="<%= featuredUser.getUserStatement() %>"/></p>
                         </div>
                         <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("showContributors") %></a>
                     </div>
@@ -321,16 +321,16 @@ h2.vidcap {
 	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
 	                                <small>
 	                                    <time>
-	                                        <%=thisEnc.getDate() %>
+	                                        <c:out value="<%= thisEnc.getDate() %>"/>
 	                                        <%
 	                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
-	                                        %>/ <%=thisEnc.getLocationID() %>
+	                                        %>/ <c:out value="<%= thisEnc.getLocationID() %>"/>
 	                                        <%
 	                                           }
 	                                        %>
 	                                    </time>
 	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getDisplayName() %></a></p>
+	                                <p><a href="encounters/encounter.jsp?number=<%= URLEncoder.encode(thisEnc.getCatalogNumber() != null ? thisEnc.getCatalogNumber() : "", "UTF-8") %>" title=""><c:out value="<%= thisEnc.getDisplayName() %>"/></a></p>
 
 
 	                            </li>
@@ -366,9 +366,9 @@ h2.vidcap {
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && myShepherd.getUser(spotter)!=null){
+	                          User thisUser=myShepherd.getUser(spotter);
+	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && thisUser!=null){
 	                        	  String profilePhotoURL = IndexPageHelper.DEFAULT_PHOTO_URL;
-	                              User thisUser=myShepherd.getUser(spotter);
 	                              if (thisUser.getUserImage() != null) {
 	                                  profilePhotoURL = IndexPageHelper.buildSafeProfilePhotoUrl(
 	                                      CommonConfiguration.getDataDirectoryName(context),
@@ -383,11 +383,11 @@ h2.vidcap {
 	                                    <%
 	                                    if(thisUser.getAffiliation()!=null){
 	                                    %>
-	                                    <small><%=thisUser.getAffiliation() %></small>
+	                                    <small><c:out value="<%= thisUser.getAffiliation() %>"/></small>
 	                                    <%
 	                                      }
 	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
+	                                    <p><a href="#" title=""><c:out value="<%= spotter %>"/></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
 	                                </li>
 
 	                           <%

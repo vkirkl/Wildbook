@@ -37,6 +37,6 @@ public class IndexPageHelper {
     }
 
     private static boolean containsUnsafePathChars(String s) {
-        return s.contains("/") || s.contains("\\") || s.contains("..");
+        return s.contains("/") || s.contains("\\") || s.contains("..") || s.contains("\"");
     }
 }
