@@ -312,7 +312,6 @@ h2.vidcap {
                        <%
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
                        try{
 	                       for(int i=0;i<numResults;i++){
 	                           Encounter thisEnc=latestIndividuals.get(i);
@@ -338,10 +337,6 @@ h2.vidcap {
 	                        }
 						}
                        catch(Exception e){ logger.error("Failed to render recent encounters section", e); }
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
-
-                       }
 
                         %>
 
