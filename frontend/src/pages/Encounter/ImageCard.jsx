@@ -58,13 +58,11 @@ const ImageCard = observer(({ store = {} }) => {
   const isTerminalDetectionStatus = (status) =>
     status === "complete" || status === "error" || status === "pending";
 
-  const selectedAssetDetectionStatus =
-    store.encounterData?.mediaAssets?.[store.selectedImageIndex]
-      ?.detectionStatus;
+  const selectedAsset =
+    store.encounterData?.mediaAssets?.[store.selectedImageIndex];
+  const selectedAssetDetectionStatus = selectedAsset?.detectionStatus;
   const isDetectionInProgress =
-    selectedAssetDetectionStatus !== undefined &&
-    selectedAssetDetectionStatus !== null &&
-    !isTerminalDetectionStatus(selectedAssetDetectionStatus);
+    !!selectedAsset && !isTerminalDetectionStatus(selectedAssetDetectionStatus);
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
