@@ -73,7 +73,7 @@ const Encounter = observer(() => {
     let timeoutId = null;
 
     const isTerminalDetectionStatus = (status) =>
-      status === "completed" || status === "error" || status === "pending";
+      status === "complete" || status === "error" || status === "pending";
 
     const shouldContinuePolling = (encounterData) => {
       const mediaAssets = Array.isArray(encounterData?.mediaAssets)
