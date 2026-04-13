@@ -176,6 +176,11 @@ jest.mock("../../../pages/Encounter/stores", () => {
       this.setEncounterData = jest.fn((data) => {
         this.encounterData = data;
       });
+      this.setMediaAssets = jest.fn((assets) => {
+        if (this.encounterData) {
+          this.encounterData.mediaAssets = assets;
+        }
+      });
       this.refreshEncounterData = makeFn();
 
       this.access = preset.access ?? "write";
@@ -444,26 +449,55 @@ describe("Encounter page – polling behavior", () => {
     expect(axios.get).toHaveBeenCalledTimes(2);
   });
 
-  test("polling is scheduled when an asset has null detectionStatus", async () => {
+  test("no polling when an asset has null detectionStatus", async () => {
     setUrl("E-POLL-3b");
-    axios.get
-      .mockResolvedValueOnce({
-        data: { id: "E-POLL-3b", mediaAssets: [{ detectionStatus: null }] },
-      })
-      .mockResolvedValueOnce({
-        data: {
-          id: "E-POLL-3b",
-          mediaAssets: [{ detectionStatus: "complete" }],
-        },
-      });
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3b", mediaAssets: [{ detectionStatus: null }] },
+    });
 
     renderWithResult();
     await flushPromises();
 
-    act(() => jest.advanceTimersByTime(3000));
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
     await flushPromises();
 
-    expect(axios.get).toHaveBeenCalledTimes(2);
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when an asset has empty string detectionStatus", async () => {
+    setUrl("E-POLL-3c");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3c", mediaAssets: [{ detectionStatus: "" }] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+  });
+
+  test("no polling when an asset has no detectionStatus property", async () => {
+    setUrl("E-POLL-3d");
+    axios.get.mockResolvedValue({
+      data: { id: "E-POLL-3d", mediaAssets: [{}] },
+    });
+
+    renderWithResult();
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
+
+    act(() => jest.advanceTimersByTime(3001));
+    await flushPromises();
+
+    expect(axios.get).toHaveBeenCalledTimes(1);
   });
 
   test("polling stops once all assets reach a terminal status", async () => {
@@ -492,6 +526,32 @@ describe("Encounter page – polling behavior", () => {
     await flushPromises();
 
     expect(axios.get).toHaveBeenCalledTimes(2);
+  });
+
+  test("initial fetch calls setEncounterData, poll tick calls setMediaAssets", async () => {
+    setUrl("E-POLL-6");
+    const secondMediaAssets = [{ detectionStatus: "complete" }];
+    axios.get
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-6", mediaAssets: [{ detectionStatus: "running" }] },
+      })
+      .mockResolvedValueOnce({
+        data: { id: "E-POLL-6", mediaAssets: secondMediaAssets },
+      });
+
+    renderWithResult();
+    await flushPromises();
+
+    const store = global.__LAST_ENCOUNTER_STORE__;
+    expect(store.setEncounterData).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).not.toHaveBeenCalled();
+
+    act(() => jest.advanceTimersByTime(3000));
+    await flushPromises();
+
+    expect(store.setEncounterData).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).toHaveBeenCalledTimes(1);
+    expect(store.setMediaAssets).toHaveBeenCalledWith(secondMediaAssets);
   });
 
   test("unmounting before the poll fires cancels the scheduled fetch", async () => {
