@@ -5460,7 +5460,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (id < 0) continue;
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                 if (ma != null) {
-                    ma.setDetectionStatus(hasConfig ? "pending" : "complete");
+                    ma.setDetectionStatus(hasConfig ? IBEISIA.STATUS_INITIATED : IBEISIA.STATUS_COMPLETE);
                     allMAs.add(ma);
                 }
             }
