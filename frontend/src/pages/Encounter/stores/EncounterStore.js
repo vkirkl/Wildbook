@@ -152,6 +152,12 @@ class EncounterStore {
     this.resetAllDrafts();
   }
 
+  setMediaAssets(mediaAssets) {
+    if (this._encounterData) {
+      this._encounterData.mediaAssets = mediaAssets;
+    }
+  }
+
   get access() {
     return this._access;
   }

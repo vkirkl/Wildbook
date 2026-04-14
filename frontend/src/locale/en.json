@@ -588,6 +588,7 @@
     "ADD": "Add",
     "ADD_KEYWORD": "Add Keyword",
     "KEYWORDS": "Keywords",
+    "DETECTION_IN_PROGRESS": "Detection in progress",
     "NEW_KEYWORD": "New Keyword",
     "SELECT_LABELED_KEYWORD_VALUE": "Select Labeled Keyword Value",
     "SEARCH_PROJECT": "Search Project",

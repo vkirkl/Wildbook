@@ -114,6 +114,7 @@ public class MediaAsset extends Base implements java.io.Serializable {
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
         this.setHashCode();
+        if (this.acmId == null) this.acmId = this.getUUID();
     }
 
     public AccessControl getAccessControl() {

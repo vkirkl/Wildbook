@@ -1174,7 +1174,8 @@ public class Encounter extends Base implements java.io.Serializable {
         Long thisTime = getDateInMilliseconds();
 
         if (thisTime == null) return false;
-        return (start.getMillis() <= thisTime && end.getMillis() >= thisTime);
+        long endOfDay = end.withTime(23, 59, 59, 999).getMillis();
+        return (start.getMillis() <= thisTime && endOfDay >= thisTime);
     }
 
     // @return the String holding specific location data used for searching
@@ -5459,7 +5460,7 @@ public class Encounter extends Base implements java.io.Serializable {
                 if (id < 0) continue;
                 MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
                 if (ma != null) {
-                    ma.setDetectionStatus(hasConfig ? "pending" : "complete");
+                    ma.setDetectionStatus(hasConfig ? IBEISIA.STATUS_INITIATED : IBEISIA.STATUS_COMPLETE);
                     allMAs.add(ma);
                 }
             }
