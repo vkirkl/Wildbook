@@ -12,7 +12,22 @@ import * as useFilterEncountersHook from "../../../models/encounters/useFilterEn
 import * as useFilterEncountersWithMediaAssetsHook from "../../../models/encounters/useFilterEncountersWithMediaAssets";
 import * as useEncounterSearchSchemasHook from "../../../models/encounters/useEncounterSearchSchemas";
 import * as getAllSearchParams from "../../../pages/SearchPages/getAllSearchParamsAndParse";
+import { globalEncounterFormStore } from "../../../pages/SearchPages/stores/EncounterFormStore";
 import axios from "axios";
+
+jest.mock("../../../pages/SearchPages/stores/EncounterFormStore", () => ({
+  globalEncounterFormStore: {
+    formFilters: [],
+    mediaAssetsSearchQuery: [],
+    pageSize: 20,
+    start: 0,
+    assetOffset: 0,
+    setCurrentPageItems: jest.fn(),
+    setAssetOffset: jest.fn(),
+    setStart: jest.fn(),
+    setSelectedRows: jest.fn(),
+  },
+}));
 
 jest.mock("../../../components/DataTable", () => {
   const MockDataTable = (props) => (
@@ -199,8 +214,14 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
+      const items =
+        globalEncounterFormStore.setCurrentPageItems.mock.calls[
+          globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
+        ][0];
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({ encounterId: "enc2" });
     });
 
     it("handles all encounters having access 'none'", async () => {
@@ -231,8 +252,13 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
+      const items =
+        globalEncounterFormStore.setCurrentPageItems.mock.calls[
+          globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
+        ][0];
+      expect(items).toHaveLength(0);
     });
 
     it("processes encounters with undefined access as accessible", async () => {
@@ -258,8 +284,14 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
+      const items =
+        globalEncounterFormStore.setCurrentPageItems.mock.calls[
+          globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
+        ][0];
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({ encounterId: "enc1" });
     });
 
     it("handles mixed access levels in pagination", async () => {
@@ -300,8 +332,15 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
+      const items =
+        globalEncounterFormStore.setCurrentPageItems.mock.calls[
+          globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
+        ][0];
+      expect(items).toHaveLength(2);
+      expect(items[0]).toMatchObject({ encounterId: "enc2" });
+      expect(items[1]).toMatchObject({ encounterId: "enc4" });
     });
 
     it("handles empty media assets array", async () => {
@@ -332,8 +371,14 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
+      const items =
+        globalEncounterFormStore.setCurrentPageItems.mock.calls[
+          globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
+        ][0];
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({ encounterId: "enc2" });
     });
 
     it("handles empty hits array", async () => {
@@ -353,7 +398,9 @@ describe("EncounterSearch", () => {
       fireEvent.click(screen.getByText("TriggerGalleryPagination"));
 
       await waitFor(() => {
-        expect(mockRefetchMediaAssets).toHaveBeenCalled();
+        expect(
+          globalEncounterFormStore.setCurrentPageItems,
+        ).toHaveBeenCalledWith([]);
       });
     });
   });
