@@ -588,6 +588,7 @@
   "ADD": "Hinzufügen",
   "ADD_KEYWORD": "Stichwort hinzufügen",
   "KEYWORDS": "Stichwörter",
+  "DETECTION_IN_PROGRESS": "Erkennung läuft",
   "NEW_KEYWORD": "Neues Stichwort",
   "SELECT_LABELED_KEYWORD_VALUE": "Beschrifteten Stichwortwert auswählen",
   "SEARCH_PROJECT": "Projekt suchen",

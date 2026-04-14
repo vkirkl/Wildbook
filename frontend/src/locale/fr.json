@@ -587,6 +587,7 @@
   "ADD": "Ajouter",
   "ADD_KEYWORD": "Ajouter un mot-clé",
   "KEYWORDS": "Mot-clés",
+  "DETECTION_IN_PROGRESS": "Détection en cours",
   "NEW_KEYWORD": "Nouveau mot-clé",
   "SELECT_LABELED_KEYWORD_VALUE": "Sélectionner une valeur de mot-clé étiqueté",
   "SEARCH_PROJECT": "Rechercher un projet",
