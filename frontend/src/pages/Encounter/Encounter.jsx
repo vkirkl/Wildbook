@@ -109,7 +109,6 @@ const Encounter = observer(() => {
         }
 
         if (shouldContinuePolling(res.data)) {
-          console.log("Scheduling next encounter data fetch in 3 seconds...");
           timeoutId = window.setTimeout(fetchEncounter, 3000);
         }
       } catch (_err) {
