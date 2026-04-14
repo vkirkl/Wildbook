@@ -343,7 +343,7 @@ $(function() {
       changeMonth: true,
       changeYear: true,
       dateFormat: 'yy-mm-dd',
-      maxDate: '+1d',
+      maxDate: '0',
       controlType: 'select',
       alwaysSetTime: false,
       showSecond:false,
@@ -1356,6 +1356,34 @@ function sendButtonClicked() {
 		window.setTimeout(function() { alert('You must set a date first.'); }, 100);
 		return false;
 	}
+
+  var dateValue = $('#datepicker').val().trim();
+  var parsedDate = null;
+
+  if (/^\d{4}$/.test(dateValue)) {
+    parsedDate = new Date(Number(dateValue), 0, 1);
+  } else if (/^\d{4}-\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split('-');
+    parsedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split('-');
+    parsedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  } else if (/^\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}$/.test(dateValue)) {
+    var parts = dateValue.split(/[- :]/);
+    parsedDate = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+      Number(parts[3]),
+      Number(parts[4])
+    );
+  }
+
+  if (parsedDate && !isNaN(parsedDate.getTime()) && parsedDate > new Date()) {
+    $('#datepicker').closest('.form-group').addClass('required-missing');
+    window.setTimeout(function() { alert('Date cannot be in the future.'); }, 100);
+    return false;
+  }
 
 	if (!$('#genusSpecies').val()) {
 		$('#genusSpecies').closest('.form-group').addClass('required-missing');
