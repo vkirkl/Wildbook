@@ -250,6 +250,8 @@
     "ENCOUNTER_RESULTS_CALENDAR": "Results Calendar",
     "ENCOUNTER_ANALYSIS": "Analysis",
     "ENCOUNTER_EXPORT": "Export",
+    "SUGGESTED_ID": "Suggested ID",
+    "USE_THIS": "Use This",
     "SEARCH_ENCOUNTERS": "Search Encounters",
     "INDIVIDUAL_ID": "Individual ID",
     "SIGHTING_ID": "Sighting ID",
@@ -340,7 +342,7 @@
     "INVALID_FILES": "Invalid Files",
     "INVALID_FILES_MESSAGE": "The following files could not be uploaded. Check the {link} and try uploading again.",
     "IMAGE_REQUIREMENTS": "image requirements",
-    "INVALID_DATETIME_WARNING": "Enter a valid date. Supported formats include YYYY, YYYY-MM, YYYY-MM-DD, and date-time formats like YYYY-MM-DD HH:MM.",
+    "INVALID_DATETIME_WARNING": "Enter a valid date that is not in the future. Supported formats include YYYY, YYYY-MM, YYYY-MM-DD, and date-time formats like YYYY-MM-DD HH:MM.",
     "FILTER_BY_MAP": "Filter by Map",
     "LOCATION_ID_DESCRIPTION": "Find the location id using the text or the map. Try to be as specific as possible.",
     "LOCATION_ID_REQUIRED_WARNING": "Location ID is required to establish match sets.",
@@ -619,6 +621,7 @@
     "ADD": "Add",
     "ADD_KEYWORD": "Add Keyword",
     "KEYWORDS": "Keywords",
+    "DETECTION_IN_PROGRESS": "Detection in progress",
     "NEW_KEYWORD": "New Keyword",
     "SELECT_LABELED_KEYWORD_VALUE": "Select Labeled Keyword Value",
     "SEARCH_PROJECT": "Search Project",
@@ -736,5 +739,6 @@
     "ADD_ENCOUNTER_TO_PROJECT_DESC": "Select one or more encounters to add to a project.",
     "INVALID_DATE": "Invalid date",
     "INVALID_LAT_LON": "Please enter a valid latitude and longitude",
-    "INVALID_MEASUREMENTS": "Please enter valid values"
+    "INVALID_MEASUREMENTS": "Please enter valid values",
+    "RESULTS_PER_PAGE": "Results per page"
 }

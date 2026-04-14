@@ -70,6 +70,7 @@ class EncounterStore {
   _patterningCodeOptions = [];
   _locationIdOptions = [];
   _identificationRemarksOptions = [];
+  _hasSuggestedId = false;
 
   _metalTagLocation = [];
   _metalTagValues = [];
@@ -150,6 +151,12 @@ class EncounterStore {
         samplingProtocol: m.samplingProtocol ?? "",
       }));
     this.resetAllDrafts();
+  }
+
+  setMediaAssets(mediaAssets) {
+    if (this._encounterData) {
+      this._encounterData.mediaAssets = mediaAssets;
+    }
   }
 
   get access() {
@@ -324,6 +331,14 @@ class EncounterStore {
 
   get individualOptions() {
     return this._individualOptions || [];
+  }
+
+  get hasSuggestedId() {
+    return this._hasSuggestedId;
+  }
+
+  setHasSuggestedId(hasSuggestedId) {
+    this._hasSuggestedId = hasSuggestedId;
   }
 
   setIndividualOptions(options) {
