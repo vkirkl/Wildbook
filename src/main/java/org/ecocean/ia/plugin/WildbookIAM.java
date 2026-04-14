@@ -105,6 +105,7 @@ public class WildbookIAM extends IAPlugin {
         if (checkFirst) iaImageIds = iaImageIds();
         HashMap<String, ArrayList> map = new HashMap<String, ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
         map.put("image_unixtime_list", new ArrayList<Integer>());
         map.put("image_gps_lat_list", new ArrayList<Double>());
         map.put("image_gps_lon_list", new ArrayList<Double>());
@@ -128,6 +129,8 @@ public class WildbookIAM extends IAPlugin {
                 continue;
             }
             acmList.add(ma);
+            String uuidToSend = (ma.getAcmId() != null) ? ma.getAcmId() : ma.getUUID();
+            map.get("image_uuid_list").add(toFancyUUID(uuidToSend));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
             map.get("image_gps_lat_list").add(ma.getLatitude());
             map.get("image_gps_lon_list").add(ma.getLongitude());
@@ -157,6 +160,7 @@ public class WildbookIAM extends IAPlugin {
                     bres.put(rtn);
                     // initialize for next batch (if any)
                     map.put("image_uri_list", new ArrayList<JSONObject>());
+                    map.put("image_uuid_list", new ArrayList<JSONObject>());
                     map.put("image_unixtime_list", new ArrayList<Integer>());
                     map.put("image_gps_lat_list", new ArrayList<Double>());
                     map.put("image_gps_lon_list", new ArrayList<Double>());
