@@ -113,7 +113,7 @@ const Encounter = observer(() => {
           timeoutId = window.setTimeout(fetchEncounter, 3000);
         }
       } catch (_err) {
-        if (!cancelled) {
+        if (!cancelled && isInitialLoad.current) {
           setEncounterValid(false);
         }
       }
