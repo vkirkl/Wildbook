@@ -55,6 +55,18 @@ const ImageCard = observer(({ store = {} }) => {
     JSON.stringify(editAnnotationParams),
   );
 
+  const isTerminalDetectionStatus = (status) =>
+    !status ||
+    status === "complete" ||
+    status === "error" ||
+    status === "pending";
+
+  const selectedAsset =
+    store.encounterData?.mediaAssets?.[store.selectedImageIndex];
+  const selectedAssetDetectionStatus = selectedAsset?.detectionStatus;
+  const isDetectionInProgress =
+    !!selectedAsset && !isTerminalDetectionStatus(selectedAssetDetectionStatus);
+
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
     const r = boxRef.current.getBoundingClientRect();
@@ -235,6 +247,29 @@ const ImageCard = observer(({ store = {} }) => {
             : ""}
         </p>
       </div>
+      {isDetectionInProgress && (
+        <div
+          className="d-flex align-items-center mb-2"
+          style={{
+            gap: 8,
+            color: "#856404",
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffc107",
+            borderRadius: 6,
+            padding: "6px 10px",
+            fontSize: "0.85rem",
+          }}
+        >
+          <div
+            className="spinner-border spinner-border-sm"
+            role="status"
+            style={{ color: "#856404", flexShrink: 0 }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <FormattedMessage id="DETECTION_IN_PROGRESS" />
+        </div>
+      )}
       <div
         ref={boxRef}
         style={{
