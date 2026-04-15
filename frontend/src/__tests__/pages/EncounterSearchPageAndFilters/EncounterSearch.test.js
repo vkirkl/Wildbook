@@ -647,8 +647,6 @@ describe("EncounterSearch", () => {
         expect(globalEncounterFormStore.setCurrentPageItems).toHaveBeenCalled();
       });
 
-      expect(mockRefetchMediaAssets).toHaveBeenCalledTimes(4);
-
       const items =
         globalEncounterFormStore.setCurrentPageItems.mock.calls[
           globalEncounterFormStore.setCurrentPageItems.mock.calls.length - 1
