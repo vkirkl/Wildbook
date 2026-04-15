@@ -348,6 +348,7 @@
   "LOCATION_ID_REQUIRED_WARNING": "L'ID della posizione è necessario per stabilire set di corrispondenze.",
   "MISSING_REQUIRED_FIELDS": "Campi obbligatori mancanti o valori non corretti. Si prega di rivedere il modulo e riprovare.",
   "INVALID_EMAIL_FORMAT": "Formato email non valido",
+  "INVALID_EMAIL_ADDRESS": "Inserisci un indirizzo email valido.",
   "INVALID_LAT": "La latitudine deve essere compresa tra -90 e 90",
   "INVALID_LONG": "La longitudine deve essere compresa tra -180 e 180",
   "BEERROR_REQUIRED": "Impossibile inviare; manca un campo obbligatorio: ",
