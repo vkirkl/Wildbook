@@ -569,6 +569,7 @@
   "REMOVE_EXTRACTED_SPOTS": "Rimuovi macchie estratte",
   "PATTERN_MATCHING_RESULTS": "Risultati di corrispondenza del pattern",
   "NO_SPOTS_EXTRACTED_YET": "Nessuna macchia estratta al momento.",
+  "SPOTS_SIDE_ADDED": "{count} macchie lato {side} aggiunte",
   "NO_SCAN_RESULTS_YET": "Nessun risultato di scansione al momento.",
   "GROTH_LEFT_SCAN_RESULTS": "Groth: risultati della scansione del lato sinistro",
   "GROTH_RIGHT_SCAN_RESULTS": "Groth: risultati della scansione del lato destro",

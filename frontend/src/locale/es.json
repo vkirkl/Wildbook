@@ -569,6 +569,7 @@
   "REMOVE_EXTRACTED_SPOTS": "Eliminar manchas extraídas",
   "PATTERN_MATCHING_RESULTS": "Resultados de coincidencia de patrones",
   "NO_SPOTS_EXTRACTED_YET": "Aún no se han extraído manchas.",
+  "SPOTS_SIDE_ADDED": "{count} manchas del lado {side} añadidas",
   "NO_SCAN_RESULTS_YET": "Aún no hay resultados de escaneo.",
   "GROTH_LEFT_SCAN_RESULTS": "Groth: resultados del escaneo del lado izquierdo",
   "GROTH_RIGHT_SCAN_RESULTS": "Groth: resultados del escaneo del lado derecho",

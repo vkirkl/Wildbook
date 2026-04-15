@@ -570,6 +570,7 @@
   "REMOVE_EXTRACTED_SPOTS": "Extrahierte Flecken entfernen",
   "PATTERN_MATCHING_RESULTS": "Ergebnisse des Musterabgleichs",
   "NO_SPOTS_EXTRACTED_YET": "Noch keine Flecken extrahiert.",
+  "SPOTS_SIDE_ADDED": "{count} {side}-seitige Flecken hinzugefügt",
   "NO_SCAN_RESULTS_YET": "Noch keine Scan-Ergebnisse vorhanden.",
   "GROTH_LEFT_SCAN_RESULTS": "Groth: Scan-Ergebnisse der linken Seite",
   "GROTH_RIGHT_SCAN_RESULTS": "Groth: Scan-Ergebnisse der rechten Seite",

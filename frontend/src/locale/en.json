@@ -570,6 +570,7 @@
     "REMOVE_EXTRACTED_SPOTS": "Remove extracted spots",
     "PATTERN_MATCHING_RESULTS": "Pattern Matching Results",
     "NO_SPOTS_EXTRACTED_YET": "No spots extracted yet.",
+    "SPOTS_SIDE_ADDED": "{count} {side}-side spots added",
     "NO_SCAN_RESULTS_YET": "No scan results yet.",
     "GROTH_LEFT_SCAN_RESULTS": "Groth: Left-side scan results",
     "GROTH_RIGHT_SCAN_RESULTS": "Groth: Right-side scan results",

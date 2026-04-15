@@ -1534,7 +1534,10 @@ class EncounterStore {
   }
 
   async removeExtractedSpots(side = this._selectedSpotMappingSide) {
-    if (!this._encounterData?.id) return;
+    if (!this._encounterData?.id) {
+      toast.error("Unable to remove spots: encounter data not available");
+      throw new Error("Encounter ID is not available");
+    }
 
     this.setSpotMappingLoading(true);
 
@@ -1554,13 +1557,17 @@ class EncounterStore {
 
       if (response.status !== 200) {
         toast.error("Failed to remove extracted spots");
-        return;
+        throw new Error("Failed to remove extracted spots");
       }
 
       await this.refreshEncounterData();
       toast.success("Extracted spots removed successfully!");
     } catch (error) {
-      toast.error("Failed to remove extracted spots");
+      // Toast already shown above for non-200 status
+      // For network/other errors, show toast here
+      if (error.message !== "Failed to remove extracted spots") {
+        toast.error("Failed to remove extracted spots");
+      }
       throw error;
     } finally {
       this.setSpotMappingLoading(false);
@@ -1628,7 +1635,10 @@ class EncounterStore {
       const response = await axios.get(
         `/api/v3/encounters/${this._encounterData.id}`,
       );
-      if (response.status === 200 && response.data) {
+      if (response.status === 200) {
+        if (!response.data) {
+          throw new Error("No encounter data in response");
+        }
         const currentImageIndex = this._selectedImageIndex;
         this.setEncounterData(response.data);
         if (currentImageIndex < (response.data.mediaAssets?.length || 0)) {

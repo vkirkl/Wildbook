@@ -44,6 +44,9 @@ export const SpotMappingCard = observer(({ store = {} }) => {
   const cyan700 = themeColor?.wildMeColors?.cyan700 || "#00b7e3";
 
   const handleConfirmRemove = async () => {
+    if (loading) {
+      return;
+    }
     try {
       await store?.removeExtractedSpots?.(pendingRemoveSide);
       setPendingRemoveSide(null);
@@ -55,13 +58,21 @@ export const SpotMappingCard = observer(({ store = {} }) => {
   };
 
   const renderExtractedSpotRow = (side, count) => {
+    const sideLabel = intl.formatMessage({
+      id: side === "left" ? "LEFT_SIDE" : "RIGHT_SIDE",
+      defaultMessage: side === "left" ? "Left-side" : "Right-side",
+    });
     return (
       <div
         key={side}
         className="d-flex align-items-center justify-content-between mb-2"
       >
         <p className="mb-0">
-          {count} {side}-side spots added
+          <FormattedMessage
+            id="SPOTS_SIDE_ADDED"
+            defaultMessage="{count} {side}-side spots added"
+            values={{ count, side: sideLabel }}
+          />
         </p>
 
         {isWrite && (
@@ -132,6 +143,7 @@ export const SpotMappingCard = observer(({ store = {} }) => {
           </Button>
           <Button
             onClick={handleConfirmRemove}
+            disabled={loading}
             style={{
               color: "white",
               backgroundColor: cyan700,
@@ -175,7 +187,14 @@ export const SpotMappingCard = observer(({ store = {} }) => {
                 />
               </div>
 
-              {!hasSpots && <p className="mb-0">No spots extracted yet.</p>}
+              {!hasSpots && (
+                <p className="mb-0">
+                  <FormattedMessage
+                    id="NO_SPOTS_EXTRACTED_YET"
+                    defaultMessage="No spots extracted yet."
+                  />
+                </p>
+              )}
 
               {hasLeftSpots && renderExtractedSpotRow("left", numberLeftSpots)}
               {hasRightSpots &&
@@ -202,17 +221,25 @@ export const SpotMappingCard = observer(({ store = {} }) => {
                 !resultsGrothRight &&
                 !resultsI3SLeft &&
                 !resultsI3SRight && (
-                  <p className="mb-0">No scan results yet.</p>
+                  <p className="mb-0">
+                    <FormattedMessage
+                      id="NO_SCAN_RESULTS_YET"
+                      defaultMessage="No scan results yet."
+                    />
+                  </p>
                 )}
 
               {resultsGrothLeft && (
                 <div className="mb-1">
                   <a
-                    href={`/encounters/scanEndApplet.jsp?writeThis=true&number=${encounterNumber}&taskID=scanL${encounterNumber}`}
+                    href={`/encounters/scanEndApplet.jsp?writeThis=true&number=${encodeURIComponent(encounterNumber)}&taskID=scanL${encodeURIComponent(encounterNumber)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Groth: Left-side scan results
+                    <FormattedMessage
+                      id="GROTH_LEFT_SCAN_RESULTS"
+                      defaultMessage="Groth: Left-side scan results"
+                    />
                   </a>
                 </div>
               )}
@@ -220,11 +247,14 @@ export const SpotMappingCard = observer(({ store = {} }) => {
               {resultsGrothRight && (
                 <div className="mb-1">
                   <a
-                    href={`/encounters/scanEndApplet.jsp?writeThis=true&number=${encounterNumber}&taskID=scanR${encounterNumber}&rightSide=true`}
+                    href={`/encounters/scanEndApplet.jsp?writeThis=true&number=${encodeURIComponent(encounterNumber)}&taskID=scanR${encodeURIComponent(encounterNumber)}&rightSide=true`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Groth: Right-side scan results
+                    <FormattedMessage
+                      id="GROTH_RIGHT_SCAN_RESULTS"
+                      defaultMessage="Groth: Right-side scan results"
+                    />
                   </a>
                 </div>
               )}
@@ -232,11 +262,14 @@ export const SpotMappingCard = observer(({ store = {} }) => {
               {resultsI3SLeft && (
                 <div className="mb-1">
                   <a
-                    href={`/encounters/i3sScanEndApplet.jsp?writeThis=true&number=${encounterNumber}&I3S=true`}
+                    href={`/encounters/i3sScanEndApplet.jsp?writeThis=true&number=${encodeURIComponent(encounterNumber)}&I3S=true`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    I3S: Left-side scan results
+                    <FormattedMessage
+                      id="I3S_LEFT_SCAN_RESULTS"
+                      defaultMessage="I3S: Left-side scan results"
+                    />
                   </a>
                 </div>
               )}
@@ -244,11 +277,14 @@ export const SpotMappingCard = observer(({ store = {} }) => {
               {resultsI3SRight && (
                 <div className="mb-1">
                   <a
-                    href={`/encounters/i3sScanEndApplet.jsp?writeThis=true&number=${encounterNumber}&rightSide=true&I3S=true`}
+                    href={`/encounters/i3sScanEndApplet.jsp?writeThis=true&number=${encodeURIComponent(encounterNumber)}&rightSide=true&I3S=true`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    I3S: Right-side scan results
+                    <FormattedMessage
+                      id="I3S_RIGHT_SCAN_RESULTS"
+                      defaultMessage="I3S: Right-side scan results"
+                    />
                   </a>
                 </div>
               )}
@@ -326,7 +362,12 @@ export const SpotMappingCard = observer(({ store = {} }) => {
                             accentColor: cyan700,
                           }}
                         />
-                        <span>Left-side</span>
+                        <span>
+                          <FormattedMessage
+                            id="LEFT_SIDE"
+                            defaultMessage="Left-side"
+                          />
+                        </span>
                       </label>
                     )}
 
@@ -348,20 +389,28 @@ export const SpotMappingCard = observer(({ store = {} }) => {
                             accentColor: cyan700,
                           }}
                         />
-                        <span>Right-side</span>
+                        <span>
+                          <FormattedMessage
+                            id="RIGHT_SIDE"
+                            defaultMessage="Right-side"
+                          />
+                        </span>
                       </label>
                     )}
                   </div>
 
                   <MainButton
                     onClick={() => {
-                      store?.startSpotMappingScan?.(store.selectedSpotMappingSide);
+                      if (loading) {
+                        return;
+                      }
+                      store?.startSpotMappingScan?.(selectedSide);
                     }}
                     noArrow={true}
                     color="white"
                     backgroundColor={cyan700}
                     borderColor={cyan700}
-                    disabled={!store.selectedSpotMappingSide}
+                    disabled={!selectedSide || loading}
                   >
                     <FormattedMessage
                       id="START_SCAN"
