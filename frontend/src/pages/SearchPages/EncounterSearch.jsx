@@ -89,17 +89,18 @@ const EncounterSearch = observer(() => {
     },
   });
 
-  const pg = async () => {
-    let contents = [];
-    let cumulativeStart = store.start;
-    let assetOffset = store.assetOffset;
-    let checkedInitialBounds = false;
-    let exhaustedBackend = false;
+  useEffect(() => {
+    if (store.pageSize !== perPage) {
+      store.setPageSize(perPage);
+      store.resetGallery();
+    }
+  }, [perPage]);
 
-    // Keep fetching encounter windows until we have pageSize visible assets
-    // or the backend returns no more hits
-    while (contents.length < store.pageSize && !exhaustedBackend) {
-      // Fetch current window of encounters
+  const hasVisibleAssetsFromCursor = async (start, initialAssetOffset = 0) => {
+    let cumulativeStart = start;
+    let assetOffset = initialAssetOffset;
+
+    while (true) {
       const response = await refetchMediaAssets({
         params: {
           from: cumulativeStart,
@@ -112,62 +113,122 @@ const EncounterSearch = observer(() => {
       const rawHits = response?.data?.data?.hits || [];
 
       if (!rawHits.length) {
-        exhaustedBackend = true;
-        break;
+        return false;
       }
 
-      let rawOffset = 0;
-
-      // Process encounters in this window
-      while (contents.length < store.pageSize && rawOffset < rawHits.length) {
-        const encounter = rawHits[rawOffset];
-
+      for (const encounter of rawHits) {
         if (encounter?.access === "none") {
-          rawOffset++;
+          cumulativeStart++;
           assetOffset = 0;
-          store.setAssetOffset(0);
           continue;
         }
 
         const mediaAssets = encounter?.mediaAssets || [];
-
-        if (!checkedInitialBounds) {
-          if (mediaAssets.length <= assetOffset) {
-            assetOffset = 0;
-            store.setAssetOffset(0);
-          }
-          checkedInitialBounds = true;
+        if (mediaAssets.length > assetOffset) {
+          return true;
         }
 
-        if (mediaAssets.length > assetOffset) {
-          const rawAsset = mediaAssets[assetOffset];
-          rawAsset.__k = `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`;
-          rawAsset.encounterId = encounter.id;
-          rawAsset.individualId = encounter.individualId;
-          rawAsset.date = encounter.date;
-          rawAsset.individualDisplayName = encounter.individualDisplayName;
-          rawAsset.verbatimDate = encounter.verbatimDate;
+        cumulativeStart++;
+        assetOffset = 0;
+      }
+    }
+  };
 
-          contents.push(rawAsset);
+  const pg = async () => {
+    if (store.galleryLoading) {
+      return false;
+    }
+
+    store.setGalleryLoading(true);
+    store.setLoadingAll(true);
+
+    let contents = [];
+    let cumulativeStart = store.start;
+    let assetOffset = store.assetOffset;
+    let exhaustedBackend = false;
+    try {
+      // Keep fetching encounter windows until we have pageSize visible assets
+      // or the backend returns no more hits.
+      while (contents.length < store.pageSize && !exhaustedBackend) {
+        const response = await refetchMediaAssets({
+          params: {
+            from: cumulativeStart,
+            size: store.pageSize,
+            sort: encounterSortName,
+            sortOrder: encounterSortOrder,
+          },
+        });
+
+        const rawHits = response?.data?.data?.hits || [];
+
+        if (!rawHits.length) {
+          exhaustedBackend = true;
+          break;
+        }
+
+        let rawOffset = 0;
+
+        while (
+          contents.length < store.pageSize &&
+          rawOffset < rawHits.length
+        ) {
+          const encounter = rawHits[rawOffset];
+
+          if (encounter?.access === "none") {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const mediaAssets = encounter?.mediaAssets || [];
+
+          if (mediaAssets.length <= assetOffset) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+            continue;
+          }
+
+          const rawAsset = mediaAssets[assetOffset];
+          contents.push({
+            ...rawAsset,
+            __k: `${encounter.id}-${assetOffset}-${rawAsset.uuid ?? rawAsset.id ?? ""}`,
+            encounterId: encounter.id,
+            individualId: encounter.individualId,
+            date: encounter.date,
+            individualDisplayName: encounter.individualDisplayName,
+            verbatimDate: encounter.verbatimDate,
+          });
           assetOffset++;
-          store.setAssetOffset(assetOffset);
-        } else {
-          rawOffset++;
-          assetOffset = 0;
-          store.setAssetOffset(0);
+
+          if (assetOffset >= mediaAssets.length) {
+            rawOffset++;
+            cumulativeStart++;
+            assetOffset = 0;
+          }
         }
       }
 
-      // Advance cumulative start by the number of encounters processed in this window
-      cumulativeStart += rawOffset;
+      store.setCurrentPageItems(contents);
+      store.setStart(cumulativeStart);
+      store.setAssetOffset(assetOffset);
 
-      // If we processed all hits in this window and still don't have enough items,
-      // the loop will continue and fetch the next window
+      if (contents.length === 0) {
+        store.setGalleryExhausted(true);
+        return false;
+      }
+
+      const hasMore = await hasVisibleAssetsFromCursor(
+        cumulativeStart,
+        assetOffset,
+      );
+      store.setGalleryExhausted(!hasMore);
+      return true;
+    } finally {
+      store.setGalleryLoading(false);
+      store.setLoadingAll(false);
     }
-
-    store.setCurrentPageItems(contents);
-    store.setStart(cumulativeStart);
-    store.setAssetOffset(assetOffset);
   };
 
   const encounters = queryID ? searchData || [] : encounterData?.results || [];
