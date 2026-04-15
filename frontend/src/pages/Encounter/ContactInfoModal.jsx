@@ -8,13 +8,14 @@ import { Modal } from "react-bootstrap";
 import { FormattedMessage } from "react-intl";
 
 export const ContactInfoModal = observer(({ isOpen, onClose, store = {} }) => {
-  if (!isOpen) return null;
   const theme = React.useContext(ThemeColorContext);
 
   const submitterInfo = store?.encounterData?.submitterInfo;
   const submitters = store?.encounterData?.submitters;
   const photographers = store?.encounterData?.photographers;
   const informOthers = store?.encounterData?.informOthers;
+
+  if (!isOpen) return null;
 
   return (
     <Modal
