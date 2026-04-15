@@ -153,9 +153,11 @@ const ImageCard = observer(({ store = {} }) => {
     const handleImageLoad = () => {
       if (imgRef.current) {
         const naturalWidth =
-          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.width ||
+          imgRef.current.naturalWidth;
         const naturalHeight =
-          store.encounterData?.mediaAssets?.[store.selectedImageIndex]?.height;
+          store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+            ?.height || imgRef.current.naturalHeight;
         const displayWidth = imgRef.current.clientWidth;
         const displayHeight = imgRef.current.clientHeight;
 
@@ -174,19 +176,25 @@ const ImageCard = observer(({ store = {} }) => {
       }
     };
 
+    const handleError = () => {
+      setImageReady(true);
+    };
+
     const imgElement = imgRef.current;
     if (imgElement && imgElement.complete) {
       handleImageLoad();
     } else if (imgElement) {
       imgElement.addEventListener("load", handleImageLoad);
+      imgElement.addEventListener("error", handleError);
     }
 
     return () => {
       if (imgElement) {
         imgElement.removeEventListener("load", handleImageLoad);
+        imgElement.removeEventListener("error", handleError);
       }
     };
-  }, [rects, store.selectedImageIndex, store.encounterData]);
+  }, [store.selectedImageIndex, store.encounterData]);
 
   useEffect(() => {
     const ref = fileInputRef.current;
@@ -695,7 +703,7 @@ const ImageCard = observer(({ store = {} }) => {
               onClick={async () => {
                 if (store.matchResultClickable) {
                   const taskId = currentAnnotation?.iaTaskId;
-                  const url = `/react/match-results?taskId=${encodeURIComponent(taskId)}`;
+                  const url = `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`;
                   window.open(url, "_blank", "noopener,noreferrer");
                 } else if (
                   clickedAnnotation &&
@@ -733,7 +741,7 @@ const ImageCard = observer(({ store = {} }) => {
                     identActive &&
                     (detectionComplete || identificationStatus)
                   ) {
-                    const url = `/react/match-results?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
+                    const url = `/iaResults.jsp?taskId=${encodeURIComponent(selectedAnnotation.iaTaskId)}`;
                     window.open(url, "_blank", "noopener,noreferrer");
                   } else {
                     alert("No match results available for this annotation.");

@@ -113,8 +113,9 @@ export const ImageModal = observer(
       if (!imgRef.current) return;
 
       const handleImageLoad = () => {
-        const naturalWidth = assets[safeIndex]?.width;
-        const naturalHeight = assets[safeIndex]?.height;
+        const naturalWidth = assets[safeIndex]?.width || imgRef.current?.naturalWidth;
+        const naturalHeight =
+          assets[safeIndex]?.height || imgRef.current?.naturalHeight;
         const displayWidth = imgRef.current?.clientWidth;
         const displayHeight = imgRef.current?.clientHeight;
 
@@ -132,16 +133,22 @@ export const ImageModal = observer(
         setImageReady(true);
       };
 
+      const handleError = () => {
+        setImageReady(true);
+      };
+
       const imgElement = imgRef.current;
       if (imgElement && imgElement.complete) {
         handleImageLoad();
       } else if (imgElement) {
         imgElement.addEventListener("load", handleImageLoad);
+        imgElement.addEventListener("error", handleError);
       }
 
       return () => {
         if (imgElement) {
           imgElement.removeEventListener("load", handleImageLoad);
+          imgElement.removeEventListener("error", handleError);
         }
       };
     }, [safeIndex, assets]);
@@ -1026,7 +1033,7 @@ export const ImageModal = observer(
                         (a) => a.id === imageStore.selectedAnnotationId,
                       )?.[0]?.iaTaskId;
                       window.open(
-                        `/react/match-results?taskId=${encodeURIComponent(taskId)}`,
+                        `/iaResults.jsp?taskId=${encodeURIComponent(taskId)}`,
                         "_blank",
                       );
                     }}
