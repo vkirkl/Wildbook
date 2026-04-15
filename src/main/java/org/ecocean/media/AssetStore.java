@@ -132,6 +132,13 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract String getFilename(MediaAsset ma); // this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
 
+    public Path getBasePath() {
+        MediaAsset ma = new MediaAsset();
+        JSONObject params = new JSONObject("{\"path\": \"\"}");
+        ma.setParameters(params);
+        return localPath(ma);
+    }
+
     // human-facing, "user-chosen" filename that may include complex characters like utf8 etc
     // defaults to just using getFilename() above, but can and should be overridden if applicable
     public String getUserFilename(MediaAsset ma) {
