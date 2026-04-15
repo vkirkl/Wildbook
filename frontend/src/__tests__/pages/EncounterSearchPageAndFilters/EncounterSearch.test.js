@@ -22,10 +22,16 @@ jest.mock("../../../pages/SearchPages/stores/EncounterFormStore", () => ({
     pageSize: 20,
     start: 0,
     assetOffset: 0,
+    galleryLoading: false,
+    loadingAll: false,
+    galleryExhausted: false,
     setCurrentPageItems: jest.fn(),
     setAssetOffset: jest.fn(),
     setStart: jest.fn(),
     setSelectedRows: jest.fn(),
+    setGalleryLoading: jest.fn(),
+    setLoadingAll: jest.fn(),
+    setGalleryExhausted: jest.fn(),
   },
 }));
 
@@ -118,6 +124,9 @@ describe("EncounterSearch", () => {
     globalEncounterFormStore.pageSize = 20;
     globalEncounterFormStore.start = 0;
     globalEncounterFormStore.assetOffset = 0;
+    globalEncounterFormStore.galleryLoading = false;
+    globalEncounterFormStore.loadingAll = false;
+    globalEncounterFormStore.galleryExhausted = false;
 
     jest
       .spyOn(useFilterEncountersHook, "default")
