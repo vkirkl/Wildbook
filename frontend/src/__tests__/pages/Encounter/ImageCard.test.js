@@ -395,4 +395,69 @@ describe("ImageCard", () => {
       "Select an annotation to view match results.",
     );
   });
+
+  describe("detection status banner", () => {
+    const makeAsset = (detectionStatus) => ({
+      id: "ma-det",
+      url: "http://img/1.jpg",
+      width: 1000,
+      height: 500,
+      userFilename: "photo.jpg",
+      keywords: [],
+      annotations: [],
+      detectionStatus,
+    });
+
+    // helper that overrides encounterData with the given assets
+    const renderWithAssets = (assets, extra = {}) =>
+      renderCard(
+        makeStore({
+          encounterData: { id: "E-1", mediaAssets: assets },
+          encounterAnnotations: [],
+          ...extra,
+        }),
+      );
+
+    test("no images: banner is not shown", () => {
+      renderWithAssets([]);
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    test("image with null detectionStatus: banner is shown (needs polling)", () => {
+      renderWithAssets([makeAsset(null)]);
+      expect(screen.getByRole("status")).toBeInTheDocument();
+    });
+
+    test("image with undefined detectionStatus: banner is shown (needs polling)", () => {
+      renderWithAssets([makeAsset(undefined)]);
+      expect(screen.getByRole("status")).toBeInTheDocument();
+    });
+
+    test("non-terminal detectionStatus 'running': banner is shown", () => {
+      renderWithAssets([makeAsset("running")]);
+      expect(screen.getByRole("status")).toBeInTheDocument();
+    });
+
+    test("detectionStatus 'complete': banner is not shown", () => {
+      renderWithAssets([makeAsset("complete")]);
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    test("detectionStatus 'error': banner is not shown", () => {
+      renderWithAssets([makeAsset("error")]);
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    test("detectionStatus 'pending': banner is not shown", () => {
+      renderWithAssets([makeAsset("pending")]);
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+
+    test("banner reflects selectedImageIndex: index 0 complete hides banner even when index 1 is running", () => {
+      renderWithAssets([makeAsset("complete"), makeAsset("running")], {
+        selectedImageIndex: 0,
+      });
+      expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    });
+  });
 });

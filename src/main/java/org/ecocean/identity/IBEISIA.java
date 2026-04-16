@@ -139,7 +139,8 @@ public class IBEISIA {
             map.get("image_width_list").add(w);
             map.get("image_height_list").add(h);
 
-            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
+            String uuidToSend = (ma.getAcmId() != null) ? ma.getAcmId() : ma.getUUID();
+            map.get("image_uuid_list").add(toFancyUUID(uuidToSend));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
             map.get("image_gps_lat_list").add(ma.getLatitude());

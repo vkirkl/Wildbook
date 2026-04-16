@@ -13,6 +13,7 @@ import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
 import axios from "axios";
 import { useIntl } from "react-intl";
+import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -54,6 +55,18 @@ const ImageCard = observer(({ store = {} }) => {
   const annotationParam = encodeURIComponent(
     JSON.stringify(editAnnotationParams),
   );
+
+  const isTerminalDetectionStatus = (status) =>
+    !status ||
+    status === "complete" ||
+    status === "error" ||
+    status === "pending";
+
+  const selectedAsset =
+    store.encounterData?.mediaAssets?.[store.selectedImageIndex];
+  const selectedAssetDetectionStatus = selectedAsset?.detectionStatus;
+  const isDetectionInProgress =
+    !!selectedAsset && !isTerminalDetectionStatus(selectedAssetDetectionStatus);
 
   const handleEnter = (text) => setTip((s) => ({ ...s, show: true, text }));
   const handleMove = (e) => {
@@ -235,6 +248,29 @@ const ImageCard = observer(({ store = {} }) => {
             : ""}
         </p>
       </div>
+      {isDetectionInProgress && (
+        <div
+          className="d-flex align-items-center mb-2"
+          style={{
+            gap: 8,
+            color: "#856404",
+            backgroundColor: "#fff3cd",
+            border: "1px solid #ffc107",
+            borderRadius: 6,
+            padding: "6px 10px",
+            fontSize: "0.85rem",
+          }}
+        >
+          <div
+            className="spinner-border spinner-border-sm"
+            role="status"
+            style={{ color: "#856404", flexShrink: 0 }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <FormattedMessage id="DETECTION_IN_PROGRESS" />
+        </div>
+      )}
       <div
         ref={boxRef}
         style={{
@@ -523,6 +559,36 @@ const ImageCard = observer(({ store = {} }) => {
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
+
+        {store.encounterData?.mediaAssets?.length > 0 &&
+          store?.encounterData?.spotMapping?.enabled && (
+            <div
+              style={{
+                position: "absolute",
+                top: 5,
+                right: 45,
+                cursor: "pointer",
+                zIndex: 20,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                const mediaAssetId =
+                  store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                    ?.id;
+
+                if (!mediaAssetId) return;
+
+                window.open(
+                  `/encounters/encounterSpotTool.jsp?imageID=${encodeURIComponent(mediaAssetId)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+            >
+              <SpotMappingIcon2 />
+            </div>
+          )}
         {store.encounterData?.mediaAssets.length > 0 && (
           <div style={{ position: "absolute", top: 5, right: 5 }}>
             <FullscreenIcon />

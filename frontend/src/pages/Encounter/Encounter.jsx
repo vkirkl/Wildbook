@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { observer } from "mobx-react-lite";
 import { Container } from "react-bootstrap";
@@ -67,18 +67,64 @@ const Encounter = observer(() => {
 
   const params = new URLSearchParams(window.location.search);
   const encounterId = params.get("number");
+  const isInitialLoad = useRef(true);
 
   useEffect(() => {
     let cancelled = false;
-    axios
-      .get(`/api/v3/encounters/${encounterId}`)
-      .then((res) => {
-        if (!cancelled) store.setEncounterData(res.data);
-        store.setAccess(get(res.data, "access", "read"));
-      })
-      .catch((_err) => setEncounterValid(false));
+    let timeoutId = null;
+
+    const isTerminalDetectionStatus = (status) =>
+      !status ||
+      status === "complete" ||
+      status === "error" ||
+      status === "pending";
+
+    const shouldContinuePolling = (encounterData) => {
+      const mediaAssets = Array.isArray(encounterData?.mediaAssets)
+        ? encounterData.mediaAssets
+        : [];
+
+      if (mediaAssets.length === 0) {
+        return false;
+      }
+
+      return mediaAssets.some(
+        (asset) => !isTerminalDetectionStatus(asset?.detectionStatus),
+      );
+    };
+
+    const fetchEncounter = async () => {
+      try {
+        const res = await axios.get(`/api/v3/encounters/${encounterId}`);
+
+        if (cancelled) return;
+
+        if (isInitialLoad.current) {
+          store.setEncounterData(res.data);
+          store.setAccess(get(res.data, "access", "read"));
+          setEncounterValid(true);
+          isInitialLoad.current = false;
+        } else {
+          store.setMediaAssets(res.data.mediaAssets);
+        }
+
+        if (shouldContinuePolling(res.data)) {
+          timeoutId = window.setTimeout(fetchEncounter, 3000);
+        }
+      } catch (_err) {
+        if (!cancelled && isInitialLoad.current) {
+          setEncounterValid(false);
+        }
+      }
+    };
+
+    fetchEncounter();
+
     return () => {
       cancelled = true;
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, [encounterId, store]);
 

@@ -5,6 +5,8 @@ import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
 import useGetMe from "./models/auth/users/useGetMe";
+const HowToPhotograph = lazy(() => import("./pages/HowToPhotograph"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -12,7 +14,6 @@ const Home = lazy(() => import("./pages/Home"));
 const EncounterSearch = lazy(
   () => import("./pages/SearchPages/EncounterSearch"),
 );
-const Citation = lazy(() => import("./pages/Citation"));
 const AdminLogs = lazy(() => import("./pages/AdminLogs"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
@@ -31,10 +32,16 @@ const MatchResults = lazy(
 );
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
+const Citation = lazy(() => import("./pages/Citation"));
+const Profile = lazy(() => import("./pages/Individual/Profile"));
+const PoliciesAndData = lazy(
+  () => import("./pages/PoliciesAndData/PoliciesAndData"),
+);
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
 }) {
   const { data } = useGetMe();
   const username = data?.username;
@@ -59,6 +66,7 @@ export default function AuthenticatedSwitch({
           avatar={avatar}
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
+          showHowToPhotograph={showHowToPhotograph}
         />
       </div>
 
@@ -76,6 +84,12 @@ export default function AuthenticatedSwitch({
           <Routes>
             <Route path="/match-results" element={<MatchResults />} />
             <Route path="/citation" element={<Citation />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/policies-and-data" element={<PoliciesAndData />} />
+            {showHowToPhotograph && (
+              <Route path="/how-to-photograph" element={<HowToPhotograph />} />
+            )}
+            <Route path="/about-us" element={<AboutUs />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />

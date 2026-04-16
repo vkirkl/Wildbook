@@ -14,6 +14,7 @@ import java.util.UUID;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.ecocean.media.AssetStore;
 import org.ecocean.shepherd.core.Shepherd;
 import org.ecocean.shepherd.core.ShepherdProperties;
 import org.ecocean.tag.MetalTag;
@@ -1249,6 +1250,16 @@ public class Util {
         return iso8601;
     }
 
+    // mildly hacky, use with care
+    public static File getDataDir() {
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.beginDBTransaction();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        File ddir = astore.getBasePath().toFile();
+        myShepherd.rollbackAndClose();
+        return ddir;
+    }
+
     // from issue #1227, there are a couple ways to derive a list of valid countries (e.g. for validating
     // bulk import data), including some based on CommonConfiguration. for now we are using a canned list
     // but might be adjusted later to allow customization
@@ -1275,7 +1286,7 @@ public class Util {
     public static java.awt.Dimension hackSanselanGetImageSize(File file, String filename)
     throws IOException {
         java.awt.Dimension dim = new java.awt.Dimension();
-        JSONObject attr = org.ecocean.media.AssetStore.extractMetadataAttributes(file);
+        JSONObject attr = AssetStore.extractMetadataAttributes(file);
         // optInt will truncate values that are floats
         dim.setSize(attr.optInt("width"), attr.optInt("height"));
         return dim;
