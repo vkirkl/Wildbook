@@ -3,11 +3,15 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Footer from "./components/Footer";
 import UnAuthenticatedAppHeader from "./components/UnAuthenticatedAppHeader";
 import EncounterPageViewOnly from "./pages/Encounter/EncounterPageViewOnly";
+const PoliciesAndData = lazy(
+  () => import("./pages/PoliciesAndData/PoliciesAndData"),
+);
+const HowToPhotograph = lazy(() => import("./pages/HowToPhotograph"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
 const Unauthorized = lazy(() => import("./pages/errorPages/Unauthorized"));
-const Citation = lazy(() => import("./pages/Citation"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
 );
@@ -15,7 +19,10 @@ const ReportConfirm = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportConfirm"),
 );
 
-export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
+export default function UnAuthenticatedSwitch({
+  showclassicsubmit,
+  showHowToPhotograph,
+}) {
   const [header, setHeader] = React.useState(true);
   const location = useLocation();
 
@@ -35,7 +42,10 @@ export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
           backgroundColor: "#303336",
         }}
       >
-        <UnAuthenticatedAppHeader showclassicsubmit={showclassicsubmit} />
+        <UnAuthenticatedAppHeader
+          showclassicsubmit={showclassicsubmit}
+          showHowToPhotograph={showHowToPhotograph}
+        />
       </div>
 
       {/* Main Content */}
@@ -55,7 +65,11 @@ export default function UnAuthenticatedSwitch({ showclassicsubmit }) {
               element={<Unauthorized setHeader={setHeader} />}
             />
             <Route path="/encounter" element={<EncounterPageViewOnly />} />
-            <Route path="/citation" element={<Citation />} />
+            <Route path="/policies-and-data" element={<PoliciesAndData />} />
+            <Route path="/about-us" element={<AboutUs />} />
+            {showHowToPhotograph && (
+              <Route path="/how-to-photograph" element={<HowToPhotograph />} />
+            )}
             <Route path="/report" element={<ReportEncounter />} />
             <Route path="/reportConfirm" element={<ReportConfirm />} />
             <Route path="/login" element={<Login />} />

@@ -414,6 +414,11 @@ public class EncounterForm extends HttpServlet {
             } catch (Exception le) {
                 le.printStackTrace();
             }
+
+            // i truly do not understand the point of the thrown exceptions above, as they are just caught and the encounter is allowed to be created!
+            // seems very wrong to me. so i am NOT going to do that for this check and let it crash the ui unceremoniously.
+            if (Util.dateIsInFuture(year, month, day)) throw new IOException("date given is in the future");
+
             System.out.println("about to do enc()");
 
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess,
