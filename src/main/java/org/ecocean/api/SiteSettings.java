@@ -60,6 +60,7 @@ public class SiteSettings extends ApiBase {
             settings.put("siteDescription", CommonConfiguration.getHTMLDescription(context));
             settings.put("siteKeywords", CommonConfiguration.getHTMLKeywords(context));
             settings.put("siteAuthor", CommonConfiguration.getHTMLAuthor(context));
+            settings.put("spotMappingEnabled", CommonConfiguration.useSpotPatternRecognition(context));
             settings.put("locationData", LocationID.getLocationIDStructure());
 
             settings.put("mapCenterLat", CommonConfiguration.getCenterLat(context));

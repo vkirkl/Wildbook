@@ -13,6 +13,7 @@ import EyeIcon from "../../components/icons/EyeIcon";
 import Tooltip from "../../components/ToolTip";
 import axios from "axios";
 import { useIntl } from "react-intl";
+import SpotMappingIcon2 from "../../components/icons/SpotMappingIcon2";
 
 const ImageCard = observer(({ store = {} }) => {
   const imgRef = useRef(null);
@@ -558,6 +559,36 @@ const ImageCard = observer(({ store = {} }) => {
         <Tooltip show={tip.show} x={tip.x} y={tip.y}>
           {tip.text}
         </Tooltip>
+
+        {store.encounterData?.mediaAssets?.length > 0 &&
+          store?.encounterData?.spotMapping?.enabled && (
+            <div
+              style={{
+                position: "absolute",
+                top: 5,
+                right: 45,
+                cursor: "pointer",
+                zIndex: 20,
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+
+                const mediaAssetId =
+                  store.encounterData?.mediaAssets?.[store.selectedImageIndex]
+                    ?.id;
+
+                if (!mediaAssetId) return;
+
+                window.open(
+                  `/encounters/encounterSpotTool.jsp?imageID=${encodeURIComponent(mediaAssetId)}`,
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+            >
+              <SpotMappingIcon2 />
+            </div>
+          )}
         {store.encounterData?.mediaAssets.length > 0 && (
           <div style={{ position: "absolute", top: 5, right: 5 }}>
             <FullscreenIcon />
