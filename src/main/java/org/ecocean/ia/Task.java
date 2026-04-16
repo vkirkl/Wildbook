@@ -14,8 +14,10 @@ import java.util.Set;
 import javax.jdo.Query;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.Annotation;
+import org.ecocean.Encounter;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.shepherd.core.Shepherd;
+import org.ecocean.User;
 import org.ecocean.Util;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
@@ -69,6 +71,7 @@ public class Task implements java.io.Serializable {
 
     public long timeInactive() {
         long now = System.currentTimeMillis();
+
         if (modified > 0) return (now - modified);
         if (created > 0) return (now - created);
         // weird or inconclusive:
@@ -87,6 +90,30 @@ public class Task implements java.io.Serializable {
 
     public void setModified() {
         modified = System.currentTimeMillis();
+    }
+
+    public boolean canUserAccess(User user, Shepherd myShepherd) {
+        if (user == null) return false;
+        if (user.isAdmin(myShepherd)) return true;
+        Encounter enc = null;
+        // if we have annotations, use first to determine encounter
+        if (this.countObjectAnnotations() > 0) {
+            enc = this.getObjectAnnotations().get(0).findEncounter(myShepherd);
+        } else if (this.countObjectMediaAssets() > 0) { // no annots, use asset instead
+            MediaAsset ma = this.getObjectMediaAssets().get(0);
+            // we iterate over all annots on this asset til we find an encounter.
+            // it might be better to find *all* encounters and return access based on each;
+            // however the main use for userHasAccess() revolves around *annotation-based* tasks (matching)
+            // so i think this means asset-based access of tasks will be rare or unused anyway
+            for (Annotation ann : ma.getAnnotations()) {
+                if (ann != null) enc = ann.findEncounter(myShepherd);
+                if (enc != null) break;
+            }
+        }
+        if (enc == null) return false;
+        if (enc.isPubliclyReadable()) return true;
+        // note: we also have enc.canUserView() and enc.canUserEdit() !!! :(
+        return enc.canUserAccess(user, myShepherd.getContext());
     }
 
 /*
@@ -353,6 +380,7 @@ public class Task implements java.io.Serializable {
 
     public void setStatusDetailsAddError(String code, String message) {
         JSONObject add = new JSONObject();
+
         add.put("code", code);
         add.put("message", message);
         setStatusDetailsAddToSection("errors", add);
@@ -360,6 +388,7 @@ public class Task implements java.io.Serializable {
 
     public void setStatusDetailsAddLog(String message) {
         JSONObject add = new JSONObject();
+
         add.put("message", message);
         setStatusDetailsAddToSection("log", add);
     }
@@ -375,7 +404,6 @@ public class Task implements java.io.Serializable {
         setStatusDetails(sd);
     }
 
-    
     public JSONObject getParameters() { // only return as JSONObject!
         return Util.stringToJSONObject(parameters);
     }
@@ -560,13 +588,12 @@ public class Task implements java.io.Serializable {
         if (!statusInEndState() && timedOutDueToInactivity() && !(this.status == null)) {
             this.status = "error";
             long ti = timeInactive();
-            setStatusDetailsAddError("TIMEOUT", "this task is likely timed out; no activity for " + Util.millisToHumanApprox(ti));
+            setStatusDetailsAddError("TIMEOUT",
+                "this task is likely timed out; no activity for " + Util.millisToHumanApprox(ti));
             return this.status;
         }
-
         // if status is not null, just send it
         if (status != null) return status;
-
         // otherwise
         // note: this is LOCAL status :(  so it is not changing this.status, only returning the value
         String status = "waiting to queue";
@@ -595,7 +622,8 @@ public class Task implements java.io.Serializable {
             // if(islObj.optString("queueStatus").equals("queued")){sendIdentify=false;}
             // if(status.equals("waiting to queue"))System.out.println("islObj: "+islObj.toString());
         }
-        System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " + this.getId());
+        System.out.println("[DEBUG] getStatus() fell through to status='" + status + "' on Task " +
+            this.getId());
         return status;
     }
 
@@ -745,12 +773,15 @@ public class Task implements java.io.Serializable {
                         log.getTimestamp() + "] on Task " + this.getId() + " generated: " + mr);
                     myShepherd.getPM().makePersistent(mr);
                     mrs.add(mr);
-                    setStatusDetailsAddLog("Created " + mr + " from IdentityServiceLog " + log.getTimestamp());
+                    setStatusDetailsAddLog("Created " + mr + " from IdentityServiceLog " +
+                        log.getTimestamp());
                 } catch (java.io.IOException ex) {
                     System.out.println("[ERROR] generateMatchResults() [log t=" +
                         log.getTimestamp() + "] on Task " + this.getId() + " failed: " + ex);
                     ex.printStackTrace();
-                    setStatusDetailsAddError("UNKNOWN", "Creation of MatchResult from IdentityServiceLog " + log.getTimestamp() + " failed due to: " + ex);
+                    setStatusDetailsAddError("UNKNOWN",
+                        "Creation of MatchResult from IdentityServiceLog " + log.getTimestamp() +
+                        " failed due to: " + ex);
                 }
             }
         }
@@ -783,14 +814,15 @@ public class Task implements java.io.Serializable {
 /*
             1. we only care about (and importantly try to generate) MatchResults for ident type *with no children*
                (as there may be non-leaf nodes with methodInfo)
-               * note: we try getting it regardless of children ("just in case"); but only try to generate if none
+ * note: we try getting it regardless of children ("just in case"); but only try to generate if none
             2. getLatestMatchResult() and generateMatchResults() only pertain to log-based (wbia) results,
                as vector results should have generated their MatchResult upon completion
-*/
+ */
             MatchResult mr = getLatestMatchResult(myShepherd);
             if ((mr == null) && !hasChildren()) {
                 System.out.println(
-                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " + this.getId());
+                    "[DEBUG] matchResultsJson() found no MatchResults; generating on (leaf) Task " +
+                    this.getId());
                 List<MatchResult> mrs = generateMatchResults(myShepherd);
                 rtn.put("_generatedMatchResultsSize", mrs.size()); // leave a clue that we did the work!
                 if (mrs.size() > 0) {
@@ -814,7 +846,7 @@ public class Task implements java.io.Serializable {
                 charr.put(childJson);
             }
             rtn.put("children", charr);
-        // if we dont have children (leaf nodes) we get the status
+            // if we dont have children (leaf nodes) we get the status
         } else {
             // unsure which of these two things is more accurate or useful; thus including both
             rtn.put("status", getStatus(myShepherd));
