@@ -107,7 +107,9 @@ const ImageCard = observer(({ store = {} }) => {
   };
   const handleLeave = () => setTip({ show: false, x: 0, y: 0, text: "" });
 
-  const hasNonTrivialAnnotations = store.encounterAnnotations.length > 0;
+  const hasNonTrivialAnnotations = store.encounterAnnotations?.some(
+    (a) => !a.isTrivial && (a.boundingBox?.[2] || 0) > 0 && (a.boundingBox?.[3] || 0) > 0
+  );
 
   useEffect(() => {
     if (

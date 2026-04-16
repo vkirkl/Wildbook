@@ -151,7 +151,7 @@ export const ImageModal = observer(
           imgElement.removeEventListener("error", handleError);
         }
       };
-    }, [safeIndex, assets]);
+    }, [safeIndex]);
 
     useEffect(() => {
       const handleClickOutside = (event) => {
