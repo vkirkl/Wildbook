@@ -43,6 +43,7 @@ export default class MatchResultsStore {
   _taskIsTerminal = false;
   _rootStillRunning = false;
   _rootHasError = false;
+  _currentRequestId = null;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -397,6 +398,11 @@ export default class MatchResultsStore {
   async fetchMatchResults({ silent = false } = {}) {
     if (!this._taskId) return;
 
+    // Capture request context to detect stale responses
+    const requestId = Date.now() + Math.random();
+    this._currentRequestId = requestId;
+    const capturedTaskId = this._taskId;
+
     const params = new URLSearchParams();
     params.set("prospectsSize", String(this.numResults));
 
@@ -414,19 +420,31 @@ export default class MatchResultsStore {
         const result = await axios.get(
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
+        // Discard stale responses
+        if (this._currentRequestId !== requestId || this._taskId !== capturedTaskId) {
+          return;
+        }
         this.loadData(result?.data, { preserveSelection: false });
       } catch (e) {
         console.error(e);
         this.clearResults();
         toast.error("Failed to load match results");
       } finally {
-        this.setLoading(false);
+        // Only clear loading if this is still the current request
+        if (this._currentRequestId === requestId) {
+          this.setLoading(false);
+        }
       }
     } else {
       try {
         const result = await axios.get(
           `/api/v3/tasks/${this._taskId}/match-results?${params.toString()}`,
         );
+        // Discard stale responses
+        if (this._currentRequestId !== requestId || this._taskId !== capturedTaskId) {
+          return;
+        }
+
         const root = result?.data?.matchResultsRoot;
 
         const stillRunning = isMatchTaskStillRunning(root);
@@ -535,8 +553,9 @@ export default class MatchResultsStore {
         });
       }
 
-      for (const id of encounterIds) {
-        await axios.patch(
+      // Run all PATCHes in parallel and track results
+      const patchPromises = encounterIds.map((id) =>
+        axios.patch(
           `/api/v3/encounters/${encodeURIComponent(id)}`,
           patchOps,
           {
@@ -545,12 +564,47 @@ export default class MatchResultsStore {
               Accept: "application/json",
             },
           },
+        ).then(
+          (response) => ({ status: "fulfilled", encounterId: id, response }),
+          (error) => ({ status: "rejected", encounterId: id, error }),
+        ),
+      );
+
+      const results = await Promise.allSettled(patchPromises);
+
+      // Separate successes and failures
+      const successes = [];
+      const failures = [];
+
+      for (const result of results) {
+        if (result.status === "fulfilled") {
+          const { status, encounterId, error } = result.value;
+          if (status === "fulfilled") {
+            successes.push(encounterId);
+          } else {
+            failures.push({ encounterId, error });
+          }
+        }
+      }
+
+      // If any failed, show detailed error
+      if (failures.length > 0) {
+        const failedIds = failures.map((f) => f.encounterId).join(", ");
+        this._matchRequestError = "CREATE_NEW_INDIVIDUAL_PARTIAL";
+        toast.error(
+          `Failed to update ${failures.length} of ${encounterIds.length} encounters: ${failedIds}`,
         );
+        return {
+          ok: false,
+          error: "CREATE_NEW_INDIVIDUAL_PARTIAL",
+          successes,
+          failures: failures.map((f) => ({ encounterId: f.encounterId, error: f.error?.message || String(f.error) })),
+        };
       }
 
       this.resetSelectionToQuery();
       toast.success("New individual created successfully!");
-      return { ok: true };
+      return { ok: true, successes };
     } catch (e) {
       console.error(e);
       this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
