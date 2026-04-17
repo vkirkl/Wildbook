@@ -81,7 +81,7 @@ export default function FrontDesk() {
     }
   }, [isLoggedIn]);
 
-  if (loading || siteSettingsLoading) return <LoadingScreen />;
+  if (loading) return <LoadingScreen />;
 
   if (isLoggedIn) {
     return (
@@ -105,6 +105,7 @@ export default function FrontDesk() {
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
           showHowToPhotograph={showHowToPhotograph}
+          siteSettingsLoading={siteSettingsLoading}
         />
       </AuthContext.Provider>
     );
@@ -116,6 +117,7 @@ export default function FrontDesk() {
       <UnauthenticatedSwitch
         showclassicsubmit={showclassicsubmit}
         showHowToPhotograph={showHowToPhotograph}
+        siteSettingsLoading={siteSettingsLoading}
       />
     </AuthContext.Provider>
   );
