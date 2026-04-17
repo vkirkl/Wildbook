@@ -107,34 +107,30 @@ public class GenericObject extends ApiBase {
                             rtn.put("statusCode", 404);
                             rtn.put("error", "not found");
                         } else {
-                            if (!task.canUserAccess(currentUser, myShepherd)) {
-                                rtn.put("statusCode", 403);
-                                rtn.put("error", "access denied");
-                            } else {
-                                int prospectsSize =
-                                    org.ecocean.ia.MatchResult.DEFAULT_PROSPECTS_CUTOFF;
-                                Set<String> projectIds = null;
-                                String[] pvals = request.getParameterValues("projectId");
-                                if ((pvals != null) && (pvals.length > 0))
-                                    projectIds = new HashSet<String>(Arrays.asList(
-                                        request.getParameterValues("projectId")));
-                                try {
-                                    // note: negative size means all of them (no cutoff)
-                                    prospectsSize = Integer.parseInt(request.getParameter(
-                                        "prospectsSize"));
-                                } catch (NumberFormatException ex) {}
-                                rtn.put("prospectsSize", prospectsSize);
-                                JSONObject mrJson = task.matchResultsJson(prospectsSize, projectIds,
-                                    myShepherd);
-                                rtn.put("projectIds", projectIds);
-                                rtn.put("matchResultsRoot", mrJson);
-                                rtn.put("success", true);
-                                rtn.put("statusCode", 200);
-                                // this means we created on-the-fly some MatchResult(s) that need persisting
-                                commitShepherd = (mrJson != null) &&
-                                    mrJson.optBoolean("_commitShepherd", false);
-                                if (commitShepherd) myShepherd.commitDBTransaction();
-                            }
+                            // right now we replicate legacy functionality and allow access to anyone
+                            // based on task id only, rather than blocking based on task.canUserAccess()
+                            int prospectsSize = org.ecocean.ia.MatchResult.DEFAULT_PROSPECTS_CUTOFF;
+                            Set<String> projectIds = null;
+                            String[] pvals = request.getParameterValues("projectId");
+                            if ((pvals != null) && (pvals.length > 0))
+                                projectIds = new HashSet<String>(Arrays.asList(
+                                    request.getParameterValues("projectId")));
+                            try {
+                                // note: negative size means all of them (no cutoff)
+                                prospectsSize = Integer.parseInt(request.getParameter(
+                                    "prospectsSize"));
+                            } catch (NumberFormatException ex) {}
+                            rtn.put("prospectsSize", prospectsSize);
+                            JSONObject mrJson = task.matchResultsJson(prospectsSize, projectIds,
+                                myShepherd);
+                            rtn.put("projectIds", projectIds);
+                            rtn.put("matchResultsRoot", mrJson);
+                            rtn.put("success", true);
+                            rtn.put("statusCode", 200);
+                            // this means we created on-the-fly some MatchResult(s) that need persisting
+                            commitShepherd = (mrJson != null) &&
+                                mrJson.optBoolean("_commitShepherd", false);
+                            if (commitShepherd) myShepherd.commitDBTransaction();
                         }
                     } else {
                         throw new ApiException("invalid tasks operation");
