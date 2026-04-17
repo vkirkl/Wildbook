@@ -1,4 +1,4 @@
-import React, {
+import {
   forwardRef,
   useEffect,
   useImperativeHandle,
@@ -152,46 +152,41 @@ const InteractiveAnnotationOverlay = forwardRef(
       };
     };
 
-    const zoomIn = () => {
-      setZoom((z) => {
-        const nextZoom = clampZoom(z + zoomStep);
-        setPan((prev) => clampPan(prev, nextZoom));
-        return nextZoom;
-      });
-    };
-
-    const zoomOut = () => {
-      setZoom((z) => {
-        const nextZoom = clampZoom(z - zoomStep);
-        setPan((prev) => clampPan(prev, nextZoom));
-        return nextZoom;
-      });
-    };
-
-    const reset = () => {
-      const nextZoom = clampZoom(initialZoom || 1);
-      setZoom(nextZoom);
-      setPan(clampPan({ x: 0, y: 0 }, nextZoom));
-    };
-
-    const toggleAnnotations = () => {
-      if (typeof showAnnotationsProp === "boolean") return;
-      setInternalShowAnn((v) => !v);
-    };
-
-    const setAnnotationsVisible = (v) => {
-      if (typeof showAnnotationsProp === "boolean") return;
-      setInternalShowAnn(!!v);
-    };
+    const stateRef = useRef({ zoom, pan, showAnn, imageLoaded });
+    useEffect(() => {
+      stateRef.current = { zoom, pan, showAnn, imageLoaded };
+    }, [zoom, pan, showAnn, imageLoaded]);
 
     useImperativeHandle(ref, () => ({
-      zoomIn,
-      zoomOut,
-      reset,
-      toggleAnnotations,
-      setAnnotationsVisible,
-      getState: () => ({ zoom, pan, showAnn, imageLoaded }),
-    }));
+      zoomIn: () => {
+        setZoom((z) => {
+          const nextZoom = clampZoom(z + zoomStep);
+          setPan((prev) => clampPan(prev, nextZoom));
+          return nextZoom;
+        });
+      },
+      zoomOut: () => {
+        setZoom((z) => {
+          const nextZoom = clampZoom(z - zoomStep);
+          setPan((prev) => clampPan(prev, nextZoom));
+          return nextZoom;
+        });
+      },
+      reset: () => {
+        const nextZoom = clampZoom(initialZoom || 1);
+        setZoom(nextZoom);
+        setPan(clampPan({ x: 0, y: 0 }, nextZoom));
+      },
+      toggleAnnotations: () => {
+        if (typeof showAnnotationsProp === "boolean") return;
+        setInternalShowAnn((v) => !v);
+      },
+      setAnnotationsVisible: (v) => {
+        if (typeof showAnnotationsProp === "boolean") return;
+        setInternalShowAnn(!!v);
+      },
+      getState: () => stateRef.current,
+    }), []);
 
     const onMouseDown = (e) => {
       if (!imageLoaded) return;
