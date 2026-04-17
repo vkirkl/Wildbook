@@ -426,7 +426,6 @@ export default class MatchResultsStore {
         }
         this.loadData(result?.data, { preserveSelection: false });
       } catch (e) {
-        console.error(e);
         this.clearResults();
         toast.error("Failed to load match results");
       } finally {
@@ -458,7 +457,7 @@ export default class MatchResultsStore {
 
         this.loadData(result?.data, { preserveSelection: true });
       } catch (e) {
-        console.error(e);
+          throw new Error("Failed to silently refresh match results: " + (e?.message || String(e)));
       }
     }
   }
@@ -610,7 +609,6 @@ export default class MatchResultsStore {
       toast.success("New individual created successfully!");
       return { ok: true, successes };
     } catch (e) {
-      console.error(e);
       this._matchRequestError = "CREATE_NEW_INDIVIDUAL_FAILED";
       toast.error("Failed to create new individual");
       return { ok: false, error: "CREATE_NEW_INDIVIDUAL_FAILED" };
@@ -705,7 +703,6 @@ export default class MatchResultsStore {
       toast.success("Match confirmed successfully!");
       return res.data;
     } catch (e) {
-      console.error(e);
       this._matchRequestError = "MATCH_FAILED";
       toast.error("Failed to confirm match");
       return null;
@@ -755,7 +752,6 @@ export default class MatchResultsStore {
       toast.success("Merge page opened successfully!");
       return { ok: true };
     } catch (e) {
-      console.error(e);
       this._matchRequestError = "MERGE_FAILED";
       toast.error("Failed to start merge");
       return null;
