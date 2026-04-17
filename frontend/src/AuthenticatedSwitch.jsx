@@ -33,7 +33,6 @@ const MatchResults = lazy(
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
 const Citation = lazy(() => import("./pages/Citation"));
-const Profile = lazy(() => import("./pages/Individual/Profile"));
 const PoliciesAndData = lazy(
   () => import("./pages/PoliciesAndData/PoliciesAndData"),
 );
@@ -84,7 +83,6 @@ export default function AuthenticatedSwitch({
           <Routes>
             <Route path="/match-results" element={<MatchResults />} />
             <Route path="/citation" element={<Citation />} />
-            <Route path="/profile" element={<Profile />} />
             <Route path="/policies-and-data" element={<PoliciesAndData />} />
             {showHowToPhotograph && (
               <Route path="/how-to-photograph" element={<HowToPhotograph />} />
