@@ -4,7 +4,10 @@ import { Routes, Route } from "react-router-dom";
 import NotFound from "./pages/errorPages/NotFound";
 import AuthenticatedAppHeader from "./components/AuthenticatedAppHeader";
 import Footer from "./components/Footer";
+import LoadingScreen from "./components/LoadingScreen";
 import useGetMe from "./models/auth/users/useGetMe";
+const HowToPhotograph = lazy(() => import("./pages/HowToPhotograph"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
 
 // Lazy load pages
 const Login = lazy(() => import("./pages/Login"));
@@ -13,7 +16,6 @@ const Home = lazy(() => import("./pages/Home"));
 const EncounterSearch = lazy(
   () => import("./pages/SearchPages/EncounterSearch"),
 );
-const Citation = lazy(() => import("./pages/Citation"));
 const AdminLogs = lazy(() => import("./pages/AdminLogs"));
 const ReportEncounter = lazy(
   () => import("./pages/ReportsAndManagamentPages/ReportEncounter"),
@@ -29,10 +31,15 @@ const BulkImport = lazy(() => import("./pages/BulkImport/BulkImport"));
 const BulkImportTask = lazy(() => import("./pages/BulkImport/BulkImportTask"));
 
 const Encounter = lazy(() => import("./pages/Encounter/Encounter"));
+const PoliciesAndData = lazy(
+  () => import("./pages/PoliciesAndData/PoliciesAndData"),
+);
 
 export default function AuthenticatedSwitch({
   showclassicsubmit,
   showClassicEncounterSearch,
+  showHowToPhotograph,
+  siteSettingsLoading,
 }) {
   const { data } = useGetMe();
   const username = data?.username;
@@ -57,6 +64,7 @@ export default function AuthenticatedSwitch({
           avatar={avatar}
           showclassicsubmit={showclassicsubmit}
           showClassicEncounterSearch={showClassicEncounterSearch}
+          showHowToPhotograph={showHowToPhotograph}
         />
       </div>
 
@@ -73,7 +81,21 @@ export default function AuthenticatedSwitch({
         <Suspense fallback={<div>Loading...</div>}>
           <Routes>
             <Route path="/profile" element={<Profile />} />
-            <Route path="/citation" element={<Citation />} />
+            <Route path="/policies-and-data" element={<PoliciesAndData />} />
+            <Route
+              path="/how-to-photograph"
+              element={
+                siteSettingsLoading ? (
+                  <LoadingScreen />
+                ) : showHowToPhotograph ? (
+                  <HowToPhotograph />
+                ) : (
+                  <NotFound setHeader={setHeader} />
+                )
+              }
+            />
+
+            <Route path="/about-us" element={<AboutUs />} />
             <Route path="/projects/overview" element={<ProjectList />} />
             <Route path="/home" element={<Home />} />
             <Route path="/report" element={<ReportEncounter />} />
