@@ -421,25 +421,12 @@ const MatchProspectTable = ({
                           {candidate.displayIndex}.
                         </span>
 
-                        <a
-                          id={`match-prospect-score-link-${sectionId}-${rowKey}`}
-                          data-testid={`match-prospect-score-link-${sectionId}-${rowKey}`}
-                          href={
-                            canOpenEncounter
-                              ? `/react/encounter?number=${encodeURIComponent(candidateEncounterId)}`
-                              : "#"
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <span
+                          id={`match-prospect-score-${sectionId}-${rowKey}`}
+                          data-testid={`match-prospect-score-${sectionId}-${rowKey}`}
                           style={{
-                            textDecoration: "none",
-                            color: themeColor.primaryColors.primary500,
                             maxWidth: "150px",
                             overflow: "hidden",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!canOpenEncounter) e.preventDefault();
                           }}
                         >
                           {Number.isFinite(candidate?.score)
@@ -448,7 +435,7 @@ const MatchProspectTable = ({
                                 { maximumFractionDigits: 4 },
                               )
                             : "—"}
-                        </a>
+                        </span>
 
                         <button
                           type="button"
