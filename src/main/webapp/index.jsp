@@ -16,6 +16,7 @@
 <%@ page import="org.apache.logging.log4j.Logger" %>
 <%@ page import="org.ecocean.servlet.IndexPageHelper" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="org.ecocean.cache.SpottersCache" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -350,10 +351,29 @@ h2.vidcap {
                     <ul class="encounter-list list-unstyled">
                     <%
                     try{
+                            SpottersCache spottersCache = (SpottersCache) application.getAttribute("spottersCache");
+                            if (spottersCache == null) {
+                                synchronized (application) {
+                                    spottersCache = (SpottersCache) application.getAttribute("spottersCache");
+                                    if (spottersCache == null) {
+                                        spottersCache = new SpottersCache();
+                                        application.setAttribute("spottersCache", spottersCache);
+                                    }
+                                }
+                            }
                             final long THIRTY_DAYS_MS = 30L * 24L * 60L * 60L * 1000L;
                             long startTime = System.currentTimeMillis() - THIRTY_DAYS_MS;
 
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = spottersCache.get();
+	                    if (spotters == null) {
+	                        spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+	                        if (spotters != null) {
+	                            spottersCache.put(spotters);
+	                        }
+	                    }
+	                    if (spotters == null) {
+	                        spotters = new java.util.LinkedHashMap<>();
+	                    }
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
@@ -362,7 +382,7 @@ h2.vidcap {
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
 	                          User thisUser=myShepherd.getUser(spotter);
-	                          if(!spotter.equals("siowamteam") && !spotter.equals("admin") && !spotter.equals("tomcat") && thisUser!=null){
+	                          if (thisUser != null && !thisUser.isAdmin(myShepherd)) {
 	                        	  String profilePhotoURL = IndexPageHelper.DEFAULT_PHOTO_URL;
 	                              if (thisUser.getUserImage() != null) {
 	                                  profilePhotoURL = IndexPageHelper.buildSafeProfilePhotoUrl(
